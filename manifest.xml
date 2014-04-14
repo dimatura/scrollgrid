@@ -1,0 +1,15 @@
+<package>
+  <description brief="scrollgrid">
+
+     scrollgrid
+
+  </description>
+  <author>Daniel Maturana</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/scrollgrid</url>
+  <depend package="roscpp"/>
+
+</package>
+
+
