@@ -3,12 +3,13 @@
 
 #include <cmath>
 
-#include "pc_semantic_micro/scrollgrid3.hpp"
-#include "pc_semantic_micro/sparse_array3.hpp"
-#include "pc_semantic_micro/dense_array3.hpp"
+#include "scrollgrid/scrollgrid2.hpp"
+#include "scrollgrid/scrollgrid3.hpp"
 
-#include "pc_semantic_micro/scrollgrid2.hpp"
-#include "pc_semantic_micro/dense_array2.hpp"
+#include "scrollgrid/dense_array2.hpp"
+#include "scrollgrid/dense_array3.hpp"
+
+#include "scrollgrid/sparse_array3.hpp"
 
 namespace ca
 {
@@ -70,8 +71,6 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
 
 }
 
-
-
 template<class Scalar, class CellType>
 void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
                  ca::SparseArray3<mem_ix_t>& occ_vox,
@@ -87,7 +86,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
       const uint64_t& hix(itr->first);
       const mem_ix_t& mix(itr->second);
       Vec3Ix gix(grid3.hash_to_grid(hix));
-      if (( (gix.array() >= clear_i_min.array()) && (gix.array() < clear_i_max.array()) ).all() ) {
+      if (( (gix.array() >= clear_i_min.array()).all() && (gix.array() < clear_i_max.array()).all() ) ) {
         array[mix] = 0;
         occ_vox.erase(itr);
       }
@@ -101,7 +100,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
       const uint64_t& hix(itr->first);
       const mem_ix_t& mix(itr->second);
       Vec3Ix gix(grid3.hash_to_grid(hix));
-      if (( (gix.array() >= clear_j_min.array()) && (gix.array() < clear_j_max.array()) ).all() ) {
+      if (( (gix.array() >= clear_j_min.array()).all() && (gix.array() < clear_j_max.array()).all() ) ) {
         array[mix] = 0;
         occ_vox.erase(itr);
       }
@@ -115,7 +114,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
       const uint64_t& hix(itr->first);
       const mem_ix_t& mix(itr->second);
       Vec3Ix gix(grid3.hash_to_grid(hix));
-      if (( (gix.array() >= clear_k_min.array()) && (gix.array() < clear_k_max.array()) ).all() ) {
+      if (( (gix.array() >= clear_k_min.array()).all() && (gix.array() < clear_k_max.array()).all() ) ) {
         array[mix] = 0;
         occ_vox.erase(itr);
       }
