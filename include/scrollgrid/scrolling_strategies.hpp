@@ -8,9 +8,7 @@
 #include <pcl_util/point_types.hpp>
 #include <pcl_util/pcl_util.hpp>
 
-#include "pc_semantic_micro/scrollgrid3.hpp"
-#include "pc_semantic_micro/geom_util.hpp"
-#include "pc_semantic_micro/algo_util.hpp"
+#include "scrollgrid/scrollgrid3.hpp"
 
 namespace ca
 {
@@ -134,7 +132,7 @@ public:
       const pcl::PointXYZ& p(xyz[i]);
       Eigen::Vector2f pf2(p.getVector3fMap().head<2>());
       if (box_xy.contains(pf2)) {
-        ca::update_min(min_z, p.z);
+        min_z = std::min(min_z, p.z);
         ++counted_pts;
       }
     }

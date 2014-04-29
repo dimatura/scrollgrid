@@ -11,6 +11,8 @@
 #include "scrollgrid/sparse_array3.hpp"
 #include "scrollgrid/grid_util.hpp"
 
+#include "scrollgrid/scrolling_strategies.hpp"
+
 int main(int argc, char *argv[]) {
   if (true) {
 
