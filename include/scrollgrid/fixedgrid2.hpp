@@ -5,18 +5,20 @@
 #include <math.h>
 
 #include <vector>
-#include <iostream>
 #include <algorithm>
+
+#include <boost/shared_ptr.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
 #include <ros/console.h>
 
-#include "pcl_util/point_types.hpp"
-#include "pc_semantic_micro/geom_util.hpp"
+#include <geom_cast/geom_cast.hpp>
+#include <pcl_util/point_types.hpp>
 
-#include "geom_cast/geom_cast.hpp"
+#include "scrollgrid/grid_types.hpp"
+#include "scrollgrid/box.hpp"
 
 namespace ca
 {
