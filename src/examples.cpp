@@ -13,6 +13,8 @@
 
 #include "scrollgrid/scrolling_strategies.hpp"
 
+#include "scrollgrid/raycasting.hpp"
+
 int main(int argc, char *argv[]) {
   if (true) {
 
