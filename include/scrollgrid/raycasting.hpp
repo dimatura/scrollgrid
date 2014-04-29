@@ -46,6 +46,8 @@ bool aabb_ray_intersect(const ca::Box<Scalar, 3>& box, ca::Ray3<Scalar> &r) {
  * Trace a straight line from start_pos to end_pos.
  * At each step fun(i, j, k) is called.
  *
+ * NOTE start_pos and end_pos should be inside the grid
+ *
  * Reference: graphics gems article
  * TODO consider DDA-type raytracing.
  */
