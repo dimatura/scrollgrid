@@ -3,6 +3,8 @@
 #include "scrollgrid/scrollgrid3.hpp"
 
 int main(int argc, char *argv[]) {
-  /* code */
+  if (true) {
+
+  }
   return 0;
 }

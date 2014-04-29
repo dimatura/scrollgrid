@@ -1,13 +1,17 @@
-#ifndef GEOM_UTIL_HPP_U7AWNVEZ
-#define GEOM_UTIL_HPP_U7AWNVEZ
+#ifndef BOX_HPP_X4SVNTNP
+#define BOX_HPP_X4SVNTNP
 
 #include <assert.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-namespace ca {
+namespace ca
+{
 
+/**
+ * Describes an axis-aligned volume in space.
+ */
 template<typename Scalar, int Dim>
 class Box {
  public:
@@ -125,37 +129,6 @@ class Box {
   Vec bounds_[2];
 };
 
-template<typename Scalar>
-class Ray3 {
- public:
-  typedef Eigen::Matrix<Scalar, 3, 1> Vec3;
-
- public:
-  Ray3(const Vec3& origin,
-       const Vec3& direction) :
-         origin(origin),
-         direction(direction),
-         tmin(Scalar(0)),
-         tmax(std::numeric_limits<Scalar>::max()),
-         invdir(Scalar(1.) / direction.array())
-  {
-    sign[0] = (invdir.x() < 0);
-    sign[1] = (invdir.y() < 0);
-    sign[2] = (invdir.z() < 0);
-  }
-
- public:
-  Vec3 point_at(Scalar t) const {
-    return origin + t*direction;
-  }
-
- public:
-  Vec3 origin, direction;
-  Scalar tmin, tmax; /// ray min and max distances
-  Vec3 invdir; // for convenience in AABB intersection
-  int sign[3];
-
-};
-
 } /* ca */
-#endif /* end of include guard: GEOM_UTIL_HPP_U7AWNVEZ */
+
+#endif /* end of include guard: BOX_HPP_X4SVNTNP */

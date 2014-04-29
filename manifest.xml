@@ -8,7 +8,11 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/scrollgrid</url>
+
+  <rosdep name="eigen" />
   <depend package="roscpp"/>
+  <depend package="pcl_util"/>
+  <depend package="geom_cast"/>
 
 </package>
 

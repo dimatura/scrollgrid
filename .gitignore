@@ -1,2 +1,7 @@
 build/
 lib/
+*.pyc
+log.txt
+bin
+.ycm_extra_conf.py
+generate_ycm_conf.py

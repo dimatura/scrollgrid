@@ -15,8 +15,9 @@
 #include <pcl_util/point_types.hpp>
 #include <geom_cast/geom_cast.hpp>
 
-#include "pc_semantic_micro/geom_util.hpp"
-#include "pc_semantic_micro/algo_util.hpp"
+#include "scrollgrid/mod_wrap.hpp"
+#include "scrollgrid/grid_types.hpp"
+#include "scrollgrid/box.hpp"
 
 namespace ca
 {
