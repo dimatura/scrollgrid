@@ -14,7 +14,7 @@
 #include <geom_cast/geom_cast.hpp>
 #include <pcl_util/point_types.hpp>
 
-#include "pc_semantic_micro/geom_util.hpp"
+#include "scrollgrid/grid_types.hpp"
 
 namespace ca
 {
@@ -87,7 +87,9 @@ public:
 public:
 
   /**
-   * these are for convenience, prbly shouldnt be used
+   * NOTE be careful when using these!
+   * They do no take into account any sort of wrapping
+   * coming from scrollgrid.
    */
   grid_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
     return this->grid_to_mem(Vec3Ix(i, j, k));
