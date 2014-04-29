@@ -7,6 +7,8 @@
 
 #include <pcl_util/point_types.hpp>
 
+#include "scrollgrid/grid_types.hpp"
+
 namespace ca
 {
 
