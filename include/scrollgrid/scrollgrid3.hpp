@@ -421,8 +421,7 @@ public:
     wrap_ijk_max_[2] = floor(static_cast<float>(scroll_offset_[2]+dimension_[2])/dimension_[2])*dimension_[2];
   }
 
-  //private:
- public:
+ private:
 
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
