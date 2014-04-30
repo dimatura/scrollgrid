@@ -38,6 +38,8 @@ public:
   typedef boost::shared_ptr<const DenseArray3> ConstPtr;
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
   // TODO perhaps stride/memory layout should
   // be further configurable.
   // TODO maybe *grid3 should just map to ijk and then
@@ -55,7 +57,8 @@ public:
       strides_(0, 0, 0),
       grid_(NULL),
       begin_(NULL),
-      end_(NULL)
+      end_(NULL),
+      owns_memory_(false)
   { }
 
   DenseArray3(const Vec3Ix& dimension) :
@@ -64,11 +67,22 @@ public:
       strides_(dimension.tail<2>().prod(), dimension[2], 1),
       grid_(new CellT[num_cells_]),
       begin_(&grid_[0]),
-      end_(&grid_[0]+num_cells_)
+      end_(&grid_[0]+num_cells_),
+      owns_memory_(true)
+  { }
+
+  DenseArray3(const Vec3Ix& dimension, ArrayType grid_data) :
+      dimension_(dimension),
+      num_cells_(dimension.prod()),
+      strides_(dimension.tail<2>().prod(), dimension[2], 1),
+      grid_(grid_data),
+      begin_(&grid_[0]),
+      end_(&grid_[0]+num_cells_),
+      owns_memory_(false)
   { }
 
   virtual ~DenseArray3() {
-    if (grid_) { delete[] grid_; }
+    if (owns_memory_ && grid_) { delete[] grid_; }
   }
 
   void reset(const Vec3Ix& dimension) {
@@ -76,12 +90,28 @@ public:
     num_cells_ = dimension.prod();
     // TODO configurable
     strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
-    if (grid_) { delete[] grid_; }
+    if (owns_memory_ && grid_) { delete[] grid_; }
     // note new T[n]() != new T[n];
     // the former initializes to zero
     grid_ = new CellT[num_cells_]();
     begin_ = &(grid_[0]);
     end_ = &(grid_[0])+num_cells_;
+  }
+
+  void reset(const Vec3Ix& dimension, ArrayType grid_data) {
+    if (owns_memory_ && grid_) { delete[] grid_; }
+    dimension_ = dimension;
+    num_cells_ = dimension.prod();
+    // TODO configurable
+    strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
+    owns_memory_ = false;
+    grid_ = grid_data;
+    begin_ = &(grid_[0]);
+    end_ = &(grid_[0])+num_cells_;
+  }
+
+  size_t allocated_bytes() {
+    return sizeof(CellType)*num_cells_;
   }
 
 public:
@@ -174,6 +204,9 @@ private:
 
   ArrayType grid_;
   iterator begin_, end_;
+
+  // does this object own the grid_ mem
+  bool owns_memory_;
 };
 
 } /* ca */

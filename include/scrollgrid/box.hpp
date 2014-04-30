@@ -18,6 +18,8 @@ class Box {
   typedef Eigen::Matrix<Scalar, Dim, 1> Vec;
 
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
   Box() {
     center_.setZero();
     radius_.setZero();

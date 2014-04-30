@@ -33,6 +33,8 @@ public:
   typedef boost::shared_ptr<const ScrollGrid3> ConstPtr;
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
   ScrollGrid3() :
       box_(),
       origin_(0, 0, 0),
@@ -58,9 +60,10 @@ public:
       num_cells_(dimension.prod()),
       scroll_offset_(0, 0, 0),
       last_ijk_(scroll_offset_ + dimension_),
+      wrap_ijk_min_(0, 0, 0),
+      wrap_ijk_max_(0, 0, 0),
       resolution_(resolution)
   {
-
     // calculate coordinates of min corner in ijk
     Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
     Vec3 m3(m, m, m);
@@ -418,7 +421,9 @@ public:
     wrap_ijk_max_[2] = floor(static_cast<float>(scroll_offset_[2]+dimension_[2])/dimension_[2])*dimension_[2];
   }
 
- private:
+  //private:
+ public:
+
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
   ca::Box<Scalar, 3> box_;

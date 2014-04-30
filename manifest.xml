@@ -4,7 +4,7 @@
      scrollgrid
 
   </description>
-  <author>Daniel Maturana</author>
+  <author>Daniel Maturana dimatura@cmu.edu</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/scrollgrid</url>
@@ -13,7 +13,9 @@
   <depend package="roscpp"/>
   <depend package="pcl_util"/>
   <depend package="geom_cast"/>
-
+  <export>
+      <cpp cflags="-I${prefix}/include" />
+  </export>
 </package>
 
 
