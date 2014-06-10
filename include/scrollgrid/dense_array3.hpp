@@ -116,16 +116,18 @@ public:
 
 public:
 
+#if 0
   /**
    * NOTE be careful when using these!
    * They do no take into account any sort of wrapping
    * coming from scrollgrid.
+   * CAREFUL.
    */
-  grid_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
+  grid_ix_t local_grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
     return this->grid_to_mem(Vec3Ix(i, j, k));
   }
 
-  grid_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
+  grid_ix_t local_grid_to_mem(const Vec3Ix& grid_ix) const {
     return strides_.dot(grid_ix);
   }
 
@@ -160,12 +162,17 @@ public:
     grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
     return grid_[mem_ix];
   }
+#endif
 
-  CellType& get(grid_ix_t mem_ix) {
+public:
+
+  CellType& get_safe(grid_ix_t mem_ix) {
+    ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
     return grid_[mem_ix];
   }
 
-  const CellType& get(grid_ix_t mem_ix) const {
+  const CellType& get_safe(grid_ix_t mem_ix) const {
+    ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
     return grid_[mem_ix];
   }
 
