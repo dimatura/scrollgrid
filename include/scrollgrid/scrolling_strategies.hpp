@@ -24,6 +24,7 @@ public:
   ScrollForBaseFrame() {
     ros::NodeHandle nh("~");
 
+    // if you want to center box around sensor/robot, use (0,0,0)
     double x, y, z;
     nh.param<double>("scrolling_strategies/target_sensor_to_center_x", x, 0);
     nh.param<double>("scrolling_strategies/target_sensor_to_center_y", y, 0);
@@ -32,6 +33,7 @@ public:
     target_sensor_to_center_.y() = y;
     target_sensor_to_center_.z() = z;
 
+    // how far do we get from "target" location before scrolling
     nh.param<double>("scrolling_strategies/scroll_dist_thresh_x", x, 0);
     nh.param<double>("scrolling_strategies/scroll_dist_thresh_y", y, 0);
     nh.param<double>("scrolling_strategies/scroll_dist_thresh_z", z, 0);
@@ -130,6 +132,7 @@ public:
     float min_z = std::numeric_limits<float>::max();
     for (size_t i=0; i < xyz.size(); ++i) {
       const pcl::PointXYZ& p(xyz[i]);
+      // TODO templatize on scalar
       Eigen::Vector2f pf2(p.getVector3fMap().head<2>());
       if (box_xy.contains(pf2)) {
         min_z = std::min(min_z, p.z);

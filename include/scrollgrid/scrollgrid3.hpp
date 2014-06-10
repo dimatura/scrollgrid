@@ -185,7 +185,7 @@ public:
 
   /**
    * get boxes to clear if scrolling by offset_cells.
-   * call this *before* scroll().
+   * Call this *before* scroll().
    * @param clear_i_min min corner of obsolete region in grid
    * @param clear_i_max max corner of obsolete region in grid
    * same for j and k
@@ -273,6 +273,7 @@ public:
 
   /**
    * Like world to grid but xyz are offset by scroll grid center.
+   * DON'T USE OR YOU WILL SCREW UP.
    */
   Vec3Ix offset_world_to_grid(const Vec3& xyz) const {
     Vec3 tmp = ((xyz + box_.center() - origin_).array() - 0.5*resolution_)/resolution_;
@@ -297,7 +298,7 @@ public:
    * Does not check if grid_ix is inside current grid box.
    * Assumes C-order, x the slowest and z the fastest.
    */
-  mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
+  mem_ix_t grid_to_mem_slow(const Vec3Ix& grid_ix) const {
     Vec3Ix grid_ix2(ca::mod_wrap(grid_ix[0], dimension_[0]),
                     ca::mod_wrap(grid_ix[1], dimension_[1]),
                     ca::mod_wrap(grid_ix[2], dimension_[2]));
@@ -309,7 +310,7 @@ public:
    * But it only works if the grid_ix are inside the bounding box.
    * Hopefully branch prediction kicks in when using this in a loop.
    */
-  mem_ix_t grid_to_mem2(const Vec3Ix& grid_ix) const {
+  mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
 
     Vec3Ix grid_ix2(grid_ix);
 
@@ -322,12 +323,12 @@ public:
     return mem_ix2;
   }
 
-  mem_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
-    return this->grid_to_mem(Vec3Ix(i, j, k));
+  mem_ix_t grid_to_mem_slow(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
+    return this->grid_to_mem_slow(Vec3Ix(i, j, k));
   }
 
-  mem_ix_t grid_to_mem2(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
-    return grid_to_mem2( Vec3Ix(i, j, k) );
+  mem_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
+    return grid_to_mem( Vec3Ix(i, j, k) );
   }
 
   /**
@@ -358,7 +359,7 @@ public:
    */
   mem_ix_t world_to_mem(const Vec3& xyz) const {
     Vec3Ix gix(this->world_to_grid(xyz));
-    return this->grid_to_mem2(gix);
+    return this->grid_to_mem(gix);
   }
 
   Vec3Ix mem_to_grid(grid_ix_t mem_ix) const {

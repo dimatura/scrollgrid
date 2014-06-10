@@ -208,7 +208,7 @@ void bresenham_trace_simple(const Vec3Ix& start_pos,
     for (int decy=ay-dx, decz=az-dx;
          ;
          x+=sx, decy+=ay, decz+=az) {
-      mem_ix_t mem_ix = grid3.grid_to_mem2(x, y, z);
+      mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       array3[mem_ix] += 1;
       //array3[mem_ix] = ray_ctr++;
       //Bresenham step
@@ -227,7 +227,7 @@ void bresenham_trace_simple(const Vec3Ix& start_pos,
     for (int decx=ax-dy,decz=az-dy;
          ;
          y+=sy,decx+=ax,decz+=az ) {
-      mem_ix_t mem_ix = grid3.grid_to_mem2(x, y, z);
+      mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       array3[mem_ix] += 1;
       //array3[mem_ix] = ray_ctr++;
       //Bresenham step
@@ -246,7 +246,7 @@ void bresenham_trace_simple(const Vec3Ix& start_pos,
     for (int decx=ax-dz,decy=ay-dz;
          ;
          z+=sz,decx+=ax,decy+=ay ) {
-      grid_ix_t mem_ix = grid3.grid_to_mem2(x, y, z);
+      grid_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       array3[mem_ix] += 1;
       //array3[mem_ix] = ray_ctr++;
       //Bresenham step
@@ -261,6 +261,7 @@ void bresenham_trace_simple(const Vec3Ix& start_pos,
     }
   }
 }
+
 
 }
 #endif /* end of include guard: RAYCASTING_HPP_OLVFBMND */

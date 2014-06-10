@@ -13,6 +13,14 @@ class Ray3 {
   typedef Eigen::Matrix<Scalar, 3, 1> Vec3;
 
  public:
+  /**
+   * @param origin: origin of ray
+   * @param direction: *unit* direction of ray
+   *
+   * if you want to use origin/endpoint
+   * Ray3(origin, (endpoint-origin).normalized());
+   *
+   */
   Ray3(const Vec3& origin,
        const Vec3& direction) :
          origin(origin),
