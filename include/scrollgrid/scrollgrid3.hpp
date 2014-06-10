@@ -12,12 +12,16 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+#include <boost/interprocess/sync/interprocess_sharable_mutex.hpp>
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
+
 #include <pcl_util/point_types.hpp>
 #include <geom_cast/geom_cast.hpp>
 
 #include "scrollgrid/mod_wrap.hpp"
 #include "scrollgrid/grid_types.hpp"
 #include "scrollgrid/box.hpp"
+
 
 namespace ca
 {
@@ -113,6 +117,8 @@ public:
 
 public:
 
+  boost::interprocess::interprocess_mutex mutex_; //for synchronization of shared memory access
+  boost::interprocess::interprocess_sharable_mutex sharable_mutex_;
   void reset(const Vec3& center,
              const Vec3Ix& dimension,
              Scalar resolution,

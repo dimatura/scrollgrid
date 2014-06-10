@@ -5,6 +5,9 @@ project(scrollgrid)
 find_package(catkin REQUIRED COMPONENTS roscpp pcl_util geom_cast cmake_modules)
 include_directories(${catkin_INCLUDE_DIRS})
 
+find_package(Boost REQUIRED)
+include_directories($(Boost_INCLUDE_DIRS))
+
 find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
 
