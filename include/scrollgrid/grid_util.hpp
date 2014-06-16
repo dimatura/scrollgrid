@@ -36,7 +36,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
       for (grid_ix_t j = clear_i_min[1]; j < clear_i_max[1]; ++j) {
         for (grid_ix_t k = clear_i_min[2]; k < clear_i_max[2]; ++k) {
           //ROS_INFO_STREAM("mem_ix = " << mem_ix);
-          mem_ix_t mem_ix = grid3.grid_to_mem2(i, j, k);
+          mem_ix_t mem_ix = grid3.grid_to_mem(i, j, k);
           array[mem_ix] = CellType();
         }
       }
@@ -49,7 +49,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
     for (grid_ix_t i = clear_j_min[0]; i < clear_j_max[0]; ++i) {
       for (grid_ix_t j = clear_j_min[1]; j < clear_j_max[1]; ++j) {
         for (grid_ix_t k = clear_j_min[2]; k < clear_j_max[2]; ++k) {
-          mem_ix_t mem_ix = grid3.grid_to_mem2(i, j, k);
+          mem_ix_t mem_ix = grid3.grid_to_mem(i, j, k);
           array[mem_ix] = CellType();
         }
       }
@@ -62,7 +62,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
     for (grid_ix_t i = clear_k_min[0]; i < clear_k_max[0]; ++i) {
       for (grid_ix_t j = clear_k_min[1]; j < clear_k_max[1]; ++j) {
         for (grid_ix_t k = clear_k_min[2]; k < clear_k_max[2]; ++k) {
-          mem_ix_t mem_ix = grid3.grid_to_mem2(i, j, k);
+          mem_ix_t mem_ix = grid3.grid_to_mem(i, j, k);
           array[mem_ix] = CellType();
         }
       }
@@ -143,7 +143,7 @@ void clear_array2(const ca::ScrollGrid2<Scalar>& grid2,
     for (grid_ix_t i = clear_i_min[0]; i < clear_i_max[0]; ++i) {
       for (grid_ix_t j = clear_i_min[1]; j < clear_i_max[1]; ++j) {
         //ROS_INFO_STREAM("mem_ix = " << mem_ix);
-        mem_ix_t mem_ix = grid2.grid_to_mem2(i, j);
+        mem_ix_t mem_ix = grid2.grid_to_mem(i, j);
         array[mem_ix] = CellType();
       }
     }
@@ -154,7 +154,7 @@ void clear_array2(const ca::ScrollGrid2<Scalar>& grid2,
     ROS_ASSERT(grid2.is_inside_grid(clear_j_max-Vec2Ix(1,1)));
     for (grid_ix_t i = clear_j_min[0]; i < clear_j_max[0]; ++i) {
       for (grid_ix_t j = clear_j_min[1]; j < clear_j_max[1]; ++j) {
-        mem_ix_t mem_ix = grid2.grid_to_mem2(i, j);
+        mem_ix_t mem_ix = grid2.grid_to_mem(i, j);
         array[mem_ix] = CellType();
       }
     }
