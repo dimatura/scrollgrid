@@ -14,6 +14,7 @@
 #include "scrollgrid/scrolling_strategies.hpp"
 
 #include "scrollgrid/raycasting.hpp"
+#include "scrollgrid/occ_raycasting.hpp"
 
 int main(int argc, char *argv[]) {
 
