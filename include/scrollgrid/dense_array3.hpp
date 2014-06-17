@@ -81,6 +81,29 @@ public:
       owns_memory_(false)
   { }
 
+  DenseArray3(const DenseArray3& other) {
+    // TODO avoid *this
+    dimension_ = other.dimension_;
+    num_cells_ = other.num_cells_;
+    strides_ = other.strides_;
+    grid_ = other.grid_;
+    begin_ = other.begin_;
+    end_ = other.end_;
+    owns_memory_ = other.owns_memory_;
+  }
+
+  DenseArray3& operator=(const DenseArray3& other) {
+    // TODO avoid *this
+    dimension_ = other.dimension_;
+    num_cells_ = other.num_cells_;
+    strides_ = other.strides_;
+    grid_ = other.grid_;
+    begin_ = other.begin_;
+    end_ = other.end_;
+    owns_memory_ = other.owns_memory_;
+    return *this;
+  }
+
   virtual ~DenseArray3() {
     if (owns_memory_ && grid_) { delete[] grid_; }
   }
@@ -186,6 +209,7 @@ public:
     return grid_[mem_ix];
   }
 
+
 public:
   // properties
   grid_ix_t dim_i() const { return dimension_[0]; }
@@ -193,10 +217,6 @@ public:
   grid_ix_t dim_k() const { return dimension_[2]; }
   Vec3Ix dimension() const { return dimension_; }
   grid_ix_t num_cells() const { return num_cells_; }
-
-private:
-  DenseArray3(const DenseArray3& other);
-  DenseArray3& operator=(const DenseArray3& other);
 
 private:
   // number of grid cells along each axis
