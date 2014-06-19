@@ -138,7 +138,6 @@ public:
 
 public:
 
-#if 0
   /**
    * NOTE be careful when using these!
    * They do no take into account any sort of wrapping
@@ -146,20 +145,19 @@ public:
    * CAREFUL.
    */
   grid_ix_t local_grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
-    return this->grid_to_mem(Vec3Ix(i, j, k));
+    return this->local_grid_to_mem(Vec3Ix(i, j, k));
   }
 
   grid_ix_t local_grid_to_mem(const Vec3Ix& grid_ix) const {
     return strides_.dot(grid_ix);
   }
 
-  Vec3Ix mem_to_grid_local(grid_ix_t mem_ix) const {
+  Vec3Ix local_mem_to_grid(grid_ix_t mem_ix) const {
     grid_ix_t i = mem_ix/strides_[0];
     mem_ix -= i*strides_[0];
     grid_ix_t j = mem_ix/strides_[1];
     mem_ix -= j*strides_[1];
     grid_ix_t k = mem_ix;
-
     return Vec3Ix(i, j, k);
   }
 
@@ -184,15 +182,20 @@ public:
     grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
     return grid_[mem_ix];
   }
-#endif
 
 public:
 
+  /**
+   * Bound check with ROS_ASSERT
+   */
   CellType& get_safe(grid_ix_t mem_ix) {
     ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
     return grid_[mem_ix];
   }
 
+  /**
+   * Bound check with ROS_ASSERT
+   */
   const CellType& get_safe(grid_ix_t mem_ix) const {
     ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
     return grid_[mem_ix];
@@ -200,14 +203,19 @@ public:
 
 public:
 
+  /**
+   * No bound check
+   */
   CellType& operator[](grid_ix_t mem_ix) {
     return grid_[mem_ix];
   }
 
+  /**
+   * No bound check
+   */
   const CellType& operator[](grid_ix_t mem_ix) const {
     return grid_[mem_ix];
   }
-
 
 public:
   // properties
