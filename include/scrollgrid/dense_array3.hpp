@@ -82,7 +82,6 @@ public:
   { }
 
   DenseArray3(const DenseArray3& other) {
-    // TODO avoid *this
     dimension_ = other.dimension_;
     num_cells_ = other.num_cells_;
     strides_ = other.strides_;
@@ -93,7 +92,7 @@ public:
   }
 
   DenseArray3& operator=(const DenseArray3& other) {
-    // TODO avoid *this
+    if (this==&other) { return *this; }
     dimension_ = other.dimension_;
     num_cells_ = other.num_cells_;
     strides_ = other.strides_;
