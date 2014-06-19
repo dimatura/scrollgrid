@@ -31,6 +31,11 @@ catkin_package(
     LIBRARIES 
 )
 
+if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(${PROJECT_NAME}_scrollgrid3_tests tests/scrollgrid3.cpp)
+    target_link_libraries(${PROJECT_NAME}_scrollgrid3_tests ${catkin_LIBRARIES})
+endif()
+
 include_directories(include)
 add_executable(${PROJECT_NAME}_examples src/examples.cpp)
 target_link_libraries(${PROJECT_NAME}_examples ${catkin_LIBRARIES})

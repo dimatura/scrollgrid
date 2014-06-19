@@ -4,8 +4,6 @@
 #include <math.h>
 #include <stdint.h>
 
-//#include <vector>
-
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -19,9 +17,21 @@
 #include "scrollgrid/grid_types.hpp"
 #include "scrollgrid/box.hpp"
 
-
 namespace ca
 {
+
+/**
+ * "world_xyz" xyz world frame
+ * "grid_xyz" xyz grid frame (shifted relative to world_xyz by origin)
+ * "grid_ijk" scaled and discretized grid coordinates:
+ *     i = floor( (x-origin_x-0.5)/resolution )
+ * "local_ijk" grid_ijk shifted by scrolling and limited/wrapped to local extent
+ *     li = (i - scroll_offset_i) modulo (dim_i)
+ * "mem_ix" index into flat storage from local_ijk.
+ *     mem_ix = local_ijk.dot(strides)
+ * "hash_ix": bit-packed version of grid_ijk
+ *
+ */
 
 // TODO start using vec4 instead for SSE optimization
 
@@ -97,7 +107,7 @@ public:
   }
 
   ScrollGrid3& operator=(const ScrollGrid3& other) {
-    if (*this==other) { return *this; }
+    if (this==&other) { return *this; }
     box_ = other.box_;
     origin_ = other.origin_;
     min_world_corner_ijk_ = other.min_world_corner_ijk_;
@@ -300,9 +310,10 @@ public:
    * Assumes C-order, x the slowest and z the fastest.
    */
   mem_ix_t grid_to_mem_slow(const Vec3Ix& grid_ix) const {
-    Vec3Ix grid_ix2(ca::mod_wrap(grid_ix[0], dimension_[0]),
-                    ca::mod_wrap(grid_ix[1], dimension_[1]),
-                    ca::mod_wrap(grid_ix[2], dimension_[2]));
+    Vec3Ix grid_ix2 = grid_ix-scroll_offset_;
+    grid_ix2[0] = ca::mod_wrap(grid_ix2[0], dimension_[0]);
+    grid_ix2[1] = ca::mod_wrap(grid_ix2[1], dimension_[1]);
+    grid_ix2[2] = ca::mod_wrap(grid_ix2[2], dimension_[2]);
     return strides_.dot(grid_ix2);
   }
 
@@ -371,6 +382,7 @@ public:
     mem_ix -= j*strides_[1];
     grid_ix_t k = mem_ix;
 
+#if 0
     // undo wrapping
     grid_ix_t ax = floor(static_cast<Scalar>(scroll_offset_[0])/dimension_[0])*dimension_[0];
     grid_ix_t ay = floor(static_cast<Scalar>(scroll_offset_[1])/dimension_[1])*dimension_[1];
@@ -380,8 +392,12 @@ public:
     fixed_ijk[0] = i + ax + (i<(scroll_offset_[0]-ax))*dimension_[0];
     fixed_ijk[1] = j + ay + (j<(scroll_offset_[1]-ay))*dimension_[1];
     fixed_ijk[2] = k + az + (k<(scroll_offset_[2]-az))*dimension_[2];
+#endif
 
-    return fixed_ijk;
+    Vec3Ix ijk(i, j, k);
+    ijk += scroll_offset_;
+
+    return ijk;
   }
 
  public:
@@ -429,8 +445,9 @@ public:
   // world_view)
   ca::Box<Scalar, 3> box_;
 
-  // static origin of the grid coordinate system. does not move when scrolling
-  // it's center - box.radius
+  // xyz position of grid origin in world_xyz frame.
+  // does not move when scrolling.
+  // initialized as (center - box.radius).
   Vec3 origin_;
 
   // minimum world corner in ijk. used for hash
