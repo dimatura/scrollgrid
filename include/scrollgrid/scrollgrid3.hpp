@@ -4,8 +4,6 @@
 #include <math.h>
 #include <stdint.h>
 
-//#include <vector>
-
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -23,11 +21,25 @@
 namespace ca
 {
 
-// TODO start using vec4 instead for SSE optimization
+// TODO this could also be achieved with templates.
+
+struct ClearCellsFun {
+  virtual void operator()(const Vec3Ix& start,
+                          const Vec3Ix& finish) const { }
+};
+
+struct FixEdgesFun {
+  virtual void operator()(grid_ix_t dim,
+                          grid_ix_t trailing,
+                          grid_ix_t leading) const { }
+};
+
+//typedef boost::function< void (grid_ix_t dim, grid_ix_t trailing, grid_ix_t leading) > FixEdgesFun;
 
 template<class Scalar>
 class ScrollGrid3 {
 public:
+  // TODO what if used vec4 instead for SSE optimizations?
   typedef Eigen::Matrix<Scalar, 3, 1> Vec3;
 
   typedef boost::shared_ptr<ScrollGrid3> Ptr;
@@ -175,13 +187,83 @@ public:
    * @param offset_cells. how much to scroll. offset_cells is a signed integral.
    *
    */
-  void scroll(const Vec3Ix& offset_cells) {
+  void just_scroll(const Vec3Ix& offset_cells) {
     Vec3Ix new_offset = scroll_offset_ + offset_cells;
     box_.translate((offset_cells.cast<Scalar>()*resolution_));
     scroll_offset_ = new_offset;
     last_ijk_ = scroll_offset_ + dimension_;
 
     this->update_wrap_ijk();
+  }
+
+  void scroll(const Vec3Ix& offset_cells) {
+    ClearCellsFun nullclear;
+    FixEdgesFun nullfix;
+    this->scroll_and_clear_and_fix(offset_cells, nullclear, nullfix);
+  }
+
+  void scroll_and_clear(const Vec3Ix& offset_cells,
+                        const ClearCellsFun& clear_cells_fun) {
+    FixEdgesFun nullfix;
+    this->scroll_and_clear_and_fix(offset_cells, clear_cells_fun, nullfix);
+  }
+
+  void scroll_and_clear_and_fix(const Vec3Ix& offset_cells,
+                                const ClearCellsFun& clear_cells_fun,
+                                const FixEdgesFun& fix_edges_fun) {
+
+    Vec3Ix new_offset = scroll_offset_ + offset_cells;
+
+    if (offset_cells[0] > 0) {
+      Vec3Ix finish(new_offset[0],
+                    scroll_offset_[1] + dimension_[1],
+                    scroll_offset_[2] + dimension_[2]);
+      clear_cells_fun(scroll_offset_, finish);
+      fix_edges_fun(0, finish[0], scroll_offset_[0]+dimension_[0]-1);
+    } else if (offset_cells[0] < 0) {
+      Vec3Ix start(scroll_offset_[0]+dimension_[0]+offset_cells[0],
+                   scroll_offset_[1],
+                   scroll_offset_[2]);
+      Vec3Ix finish = scroll_offset_ + dimension_;
+      clear_cells_fun(start, finish);
+      fix_edges_fun(0, start[0]-1, scroll_offset_[0]);
+    }
+
+    if (offset_cells[1] > 0) {
+      Vec3Ix finish(scroll_offset_[0] + dimension_[0],
+                    new_offset[1],
+                    scroll_offset_[2] + dimension_[2]);
+      clear_cells_fun(scroll_offset_, finish);
+      fix_edges_fun(1, finish[1], scroll_offset_[1]+dimension_[1]-1);
+    } else if(offset_cells[1] < 0) {
+      Vec3Ix start(scroll_offset_[0],
+                   scroll_offset_[1]+dimension_[1]+offset_cells[1],
+                   scroll_offset_[2]);
+      Vec3Ix finish = scroll_offset_ + dimension_;
+      clear_cells_fun(start, finish);
+      fix_edges_fun(1, start[1]-1, scroll_offset_[1]);
+    }
+
+    if (offset_cells[2] > 0) {
+      Vec3Ix finish(scroll_offset_[0] + dimension_[0],
+                    scroll_offset_[1] + dimension_[1],
+                    new_offset[2]);
+      clear_cells_fun(scroll_offset_, finish);
+      fix_edges_fun(2, finish[2], scroll_offset_[2]+dimension_[2]-1);
+    } else if(offset_cells[2] < 0) {
+      Vec3Ix start(scroll_offset_[0],
+                   scroll_offset_[1],
+                   scroll_offset_[2]+dimension_[2]+offset_cells[2]);
+      Vec3Ix finish = scroll_offset_ + dimension_;
+      clear_cells_fun(start, finish);
+      fix_edges_fun(2, start[2]-1, scroll_offset_[2]);
+    }
+
+    box_.translate((offset_cells.cast<Scalar>()*resolution_));
+    scroll_offset_ = new_offset;
+    last_ijk_ = scroll_offset_ + dimension_;
+    this->update_wrap_ijk();
+
   }
 
   /**
@@ -307,7 +389,7 @@ public:
   }
 
   /**
-   * This is faster than grid_to_mem, as it avoids modulo.
+   * Faster than grid_to_mem_slow, as it avoids modulo.
    * But it only works if the grid_ix are inside the bounding box.
    * Hopefully branch prediction kicks in when using this in a loop.
    */
