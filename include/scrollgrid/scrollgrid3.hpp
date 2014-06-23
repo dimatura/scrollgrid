@@ -29,7 +29,7 @@ namespace ca
  *     li = (i - scroll_offset_i) modulo (dim_i)
  * "mem_ix" index into flat storage from local_ijk.
  *     mem_ix = local_ijk.dot(strides)
- * "hash_ix": bit-packed version of grid_ijk
+ * "hash_ix": bit-packed version of grid_ijk? TODO
  *
  */
 
@@ -47,6 +47,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
   ScrollGrid3() :
+      radius_ijk_(0,0,0),
       box_(),
       origin_(0, 0, 0),
       min_world_corner_ijk_(0, 0, 0),
@@ -57,6 +58,7 @@ public:
       last_ijk_(0, 0, 0),
       wrap_ijk_min_(0, 0, 0),
       wrap_ijk_max_(0, 0, 0),
+      unwrap_ijk_(0, 0, 0),
       resolution_(0)
   { }
 
@@ -64,8 +66,9 @@ public:
               const Vec3Ix& dimension,
               Scalar resolution,
               bool x_fastest=false) :
-      box_(center-(dimension.cast<Scalar>()*resolution)/2,
-           center+(dimension.cast<Scalar>()*resolution)/2),
+      radius_ijk_(dimension/2),
+      box_(center-(radius_ijk_.cast<Scalar>()*resolution),
+           center+(radius_ijk_.cast<Scalar>()*resolution)),
       origin_(center-box_.radius()),
       dimension_(dimension),
       num_cells_(dimension.prod()),
@@ -73,6 +76,7 @@ public:
       last_ijk_(scroll_offset_ + dimension_),
       wrap_ijk_min_(0, 0, 0),
       wrap_ijk_max_(0, 0, 0),
+      unwrap_ijk_(0, 0, 0),
       resolution_(resolution)
   {
     // calculate coordinates of min corner in ijk
@@ -102,6 +106,7 @@ public:
       last_ijk_(other.last_ijk_),
       wrap_ijk_min_(other.wrap_ijk_min_),
       wrap_ijk_max_(other.wrap_ijk_max_),
+      unwrap_ijk_(other.unwrap_ijk_),
       resolution_(other.resolution_)
   {
   }
@@ -118,6 +123,7 @@ public:
     last_ijk_ = other.last_ijk_;
     wrap_ijk_min_ = other.wrap_ijk_min_;
     wrap_ijk_max_ = other.wrap_ijk_max_;
+    unwrap_ijk_ = other.unwrap_ijk_;
     resolution_ = other.resolution_;
     return *this;
   }
@@ -128,8 +134,10 @@ public:
              const Vec3Ix& dimension,
              Scalar resolution,
              bool x_fastest=false) {
+
+    radius_ijk_ = dimension/2;
     box_.set_center(center);
-    box_.set_radius((dimension.cast<Scalar>()*resolution)/2);
+    box_.set_radius(radius_ijk_.cast<Scalar>() * resolution);
     origin_ = center - box_.radius();
 
     dimension_ = dimension;
@@ -310,10 +318,9 @@ public:
    * Assumes C-order, x the slowest and z the fastest.
    */
   mem_ix_t grid_to_mem_slow(const Vec3Ix& grid_ix) const {
-    Vec3Ix grid_ix2 = grid_ix-scroll_offset_;
-    grid_ix2[0] = ca::mod_wrap(grid_ix2[0], dimension_[0]);
-    grid_ix2[1] = ca::mod_wrap(grid_ix2[1], dimension_[1]);
-    grid_ix2[2] = ca::mod_wrap(grid_ix2[2], dimension_[2]);
+    Vec3Ix grid_ix2(ca::mod_wrap(grid_ix[0], dimension_[0]),
+                    ca::mod_wrap(grid_ix[1], dimension_[1]),
+                    ca::mod_wrap(grid_ix[2], dimension_[2]));
     return strides_.dot(grid_ix2);
   }
 
@@ -323,6 +330,7 @@ public:
    * Hopefully branch prediction kicks in when using this in a loop.
    */
   mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
+    ROS_ASSERT( this->is_inside_grid(grid_ix) );
 
     Vec3Ix grid_ix2(grid_ix);
 
@@ -382,7 +390,22 @@ public:
     mem_ix -= j*strides_[1];
     grid_ix_t k = mem_ix;
 
-#if 0
+    if (i < unwrap_ijk_[0]) { i += wrap_ijk_max_[0]; } else { i += wrap_ijk_min_[0]; }
+    if (j < unwrap_ijk_[1]) { j += wrap_ijk_max_[1]; } else { j += wrap_ijk_min_[1]; }
+    if (k < unwrap_ijk_[2]) { k += wrap_ijk_max_[2]; } else { k += wrap_ijk_min_[2]; }
+
+    return (Vec3Ix(i, j, k));
+
+  }
+
+  Vec3Ix mem_to_grid_undo_wrap(grid_ix_t mem_ix) const {
+    // TODO does this work for x-fastest strides?
+    grid_ix_t i = mem_ix/strides_[0];
+    mem_ix -= i*strides_[0];
+    grid_ix_t j = mem_ix/strides_[1];
+    mem_ix -= j*strides_[1];
+    grid_ix_t k = mem_ix;
+
     // undo wrapping
     grid_ix_t ax = floor(static_cast<Scalar>(scroll_offset_[0])/dimension_[0])*dimension_[0];
     grid_ix_t ay = floor(static_cast<Scalar>(scroll_offset_[1])/dimension_[1])*dimension_[1];
@@ -392,13 +415,13 @@ public:
     fixed_ijk[0] = i + ax + (i<(scroll_offset_[0]-ax))*dimension_[0];
     fixed_ijk[1] = j + ay + (j<(scroll_offset_[1]-ay))*dimension_[1];
     fixed_ijk[2] = k + az + (k<(scroll_offset_[2]-az))*dimension_[2];
-#endif
 
     Vec3Ix ijk(i, j, k);
-    ijk += scroll_offset_;
+    //ijk += scroll_offset_;
 
     return ijk;
   }
+
 
  public:
   grid_ix_t dim_i() const { return dimension_[0]; }
@@ -411,6 +434,7 @@ public:
   grid_ix_t last_j() const { return last_ijk_[1]; }
   grid_ix_t last_k() const { return last_ijk_[2]; }
   const Vec3Ix& scroll_offset() const { return scroll_offset_; }
+  const Vec3Ix& radius_ijk() const { return radius_ijk_; }
   const Vec3Ix& dimension() const { return dimension_; }
   const Vec3& radius() const { return box_.radius(); }
   const Vec3& origin() const { return origin_; }
@@ -437,9 +461,17 @@ public:
     wrap_ijk_max_[0] = floor(static_cast<float>(scroll_offset_[0]+dimension_[0])/dimension_[0])*dimension_[0];
     wrap_ijk_max_[1] = floor(static_cast<float>(scroll_offset_[1]+dimension_[1])/dimension_[1])*dimension_[1];
     wrap_ijk_max_[2] = floor(static_cast<float>(scroll_offset_[2]+dimension_[2])/dimension_[2])*dimension_[2];
+
+    unwrap_ijk_[0] = ca::mod_wrap(scroll_offset_[0], dimension_[0]);
+    unwrap_ijk_[1] = ca::mod_wrap(scroll_offset_[1], dimension_[1]);
+    unwrap_ijk_[2] = ca::mod_wrap(scroll_offset_[2], dimension_[2]);
+
   }
 
  private:
+
+  // discrete radius, used when calculating box dimensions
+  Vec3Ix radius_ijk_;
 
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
@@ -470,9 +502,13 @@ public:
   // should always be dimension + offset
   Vec3Ix last_ijk_;
 
-  // for grid_to_mem2. the points where the grid crosses modulo boundaries.
+  // for grid_to_mem. the points where the grid crosses modulo boundaries.
   Vec3Ix wrap_ijk_min_;
   Vec3Ix wrap_ijk_max_;
+
+  // delimits when extra offset needs to be added when unwrapping
+  Vec3Ix unwrap_ijk_;
+
 
   // size of grid cells
   Scalar resolution_;
