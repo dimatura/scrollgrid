@@ -398,31 +398,6 @@ public:
 
   }
 
-  Vec3Ix mem_to_grid_undo_wrap(grid_ix_t mem_ix) const {
-    // TODO does this work for x-fastest strides?
-    grid_ix_t i = mem_ix/strides_[0];
-    mem_ix -= i*strides_[0];
-    grid_ix_t j = mem_ix/strides_[1];
-    mem_ix -= j*strides_[1];
-    grid_ix_t k = mem_ix;
-
-    // undo wrapping
-    grid_ix_t ax = floor(static_cast<Scalar>(scroll_offset_[0])/dimension_[0])*dimension_[0];
-    grid_ix_t ay = floor(static_cast<Scalar>(scroll_offset_[1])/dimension_[1])*dimension_[1];
-    grid_ix_t az = floor(static_cast<Scalar>(scroll_offset_[2])/dimension_[2])*dimension_[2];
-
-    Vec3Ix fixed_ijk;
-    fixed_ijk[0] = i + ax + (i<(scroll_offset_[0]-ax))*dimension_[0];
-    fixed_ijk[1] = j + ay + (j<(scroll_offset_[1]-ay))*dimension_[1];
-    fixed_ijk[2] = k + az + (k<(scroll_offset_[2]-az))*dimension_[2];
-
-    Vec3Ix ijk(i, j, k);
-    //ijk += scroll_offset_;
-
-    return ijk;
-  }
-
-
  public:
   grid_ix_t dim_i() const { return dimension_[0]; }
   grid_ix_t dim_j() const { return dimension_[1]; }
