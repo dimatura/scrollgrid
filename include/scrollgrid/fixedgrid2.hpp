@@ -237,7 +237,7 @@ public:
  private:
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
-  ca::Box<double, 2> box_;
+  ca::scrollgrid::Box<double, 2> box_;
 
   // static origin of the grid coordinate system.
   Vec2d origin_;

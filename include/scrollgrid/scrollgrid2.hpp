@@ -342,7 +342,7 @@ public:
   Vec2 max_pt() const { return box_.max_pt(); }
   const Vec2& center() const { return box_.center(); }
   Scalar resolution() const { return resolution_; }
-  const ca::Box<Scalar, 2>& box() const { return box_; }
+  const ca::scrollgrid::Box<Scalar, 2>& box() const { return box_; }
   grid_ix_t num_cells() const { return num_cells_; }
   Vec2Ix scroll_offset() const { return scroll_offset_; }
 
@@ -359,7 +359,7 @@ public:
  private:
   // 2d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
-  ca::Box<Scalar, 2> box_;
+  ca::scrollgrid::Box<Scalar, 2> box_;
 
   // static origin of the grid coordinate system. does not move when scrolling
   // it's center - box.radius

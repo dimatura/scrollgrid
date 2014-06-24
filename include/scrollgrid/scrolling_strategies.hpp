@@ -126,7 +126,7 @@ public:
     // do we need to scroll grid? find lowest relevant point in cloud.
     // we ignore points that fall outside xy boundaries of grid
     // TODO make this configurable
-    ca::Box<float, 2> box_xy(grid.min_pt().template head<2>().template cast<float>(),
+    ca::scrollgrid::Box<float, 2> box_xy(grid.min_pt().template head<2>().template cast<float>(),
                              grid.max_pt().template head<2>().template cast<float>());
     int counted_pts = 0;
     float min_z = std::numeric_limits<float>::max();

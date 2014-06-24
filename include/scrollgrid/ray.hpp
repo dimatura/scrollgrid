@@ -6,6 +6,8 @@
 
 namespace ca
 {
+namespace scrollgrid
+{
 
 template<typename Scalar>
 class Ray3 {
@@ -47,6 +49,6 @@ class Ray3 {
 
 };
 
+}
 } /* ca */
-
 #endif /* end of include guard: RAY_HPP_TVFS3AKQ */

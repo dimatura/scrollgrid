@@ -502,7 +502,7 @@ public:
   Vec3 max_pt() const { return box_.max_pt(); }
   const Vec3& center() const { return box_.center(); }
   Scalar resolution() const { return resolution_; }
-  const ca::Box<Scalar, 3>& box() const { return box_; }
+  const ca::scrollgrid::Box<Scalar, 3>& box() const { return box_; }
 
   grid_ix_t num_cells() const { return num_cells_; }
 
@@ -535,7 +535,7 @@ public:
 
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
-  ca::Box<Scalar, 3> box_;
+  ca::scrollgrid::Box<Scalar, 3> box_;
 
   // xyz position of grid origin in world_xyz frame.
   // does not move when scrolling.

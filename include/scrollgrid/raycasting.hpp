@@ -20,7 +20,8 @@ namespace ca
  * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
  */
 template<typename Scalar>
-bool aabb_ray_intersect(const ca::Box<Scalar, 3>& box, ca::Ray3<Scalar> &r) {
+bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
+                        ca::scrollgrid::Ray3<Scalar> &r) {
   Scalar tmin = (box.bound(r.sign[0]).x() - r.origin.x()) * r.invdir.x();
   Scalar tmax = (box.bound(1-r.sign[0]).x() - r.origin.x()) * r.invdir.x();
 

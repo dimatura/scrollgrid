@@ -8,6 +8,8 @@
 
 namespace ca
 {
+namespace scrollgrid
+{
 
 /**
  * Describes an axis-aligned volume in space.
@@ -131,6 +133,7 @@ class Box {
   Vec bounds_[2];
 };
 
+}
 } /* ca */
 
 #endif /* end of include guard: BOX_HPP_X4SVNTNP */

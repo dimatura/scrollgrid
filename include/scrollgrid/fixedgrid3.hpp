@@ -215,7 +215,7 @@ public:
  private:
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
-  ca::Box<Scalar, 3> box_;
+  ca::scrollgrid::Box<Scalar, 3> box_;
 
   // static origin of the grid coordinate system.
   // it's center - box.radius
