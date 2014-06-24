@@ -164,22 +164,22 @@ public:
 public:
 
   CellType& get(grid_ix_t i, grid_ix_t j, grid_ix_t k) {
-    grid_ix_t mem_ix = this->grid_to_mem(i, j, k);
+    grid_ix_t mem_ix = this->local_grid_to_mem(i, j, k);
     return grid_[mem_ix];
   }
 
   const CellType& get(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
-    grid_ix_t mem_ix = this->grid_to_mem(i, j, k);
+    grid_ix_t mem_ix = this->local_grid_to_mem(i, j, k);
     return grid_[mem_ix];
   }
 
   CellType& get(const Vec3Ix& grid_ix) {
-    grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
+    grid_ix_t mem_ix = this->local_grid_to_mem(grid_ix);
     return grid_[mem_ix];
   }
 
   const CellType& get(const Vec3Ix& grid_ix) const {
-    grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
+    grid_ix_t mem_ix = this->local_grid_to_mem(grid_ix);
     return grid_[mem_ix];
   }
 
