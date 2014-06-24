@@ -127,7 +127,7 @@ public:
     // we ignore points that fall outside xy boundaries of grid
     // TODO make this configurable
     ca::scrollgrid::Box<float, 2> box_xy(grid.min_pt().template head<2>().template cast<float>(),
-                             grid.max_pt().template head<2>().template cast<float>());
+                                         grid.max_pt().template head<2>().template cast<float>());
     int counted_pts = 0;
     float min_z = std::numeric_limits<float>::max();
     for (size_t i=0; i < xyz.size(); ++i) {
