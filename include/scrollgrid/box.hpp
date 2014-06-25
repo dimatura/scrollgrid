@@ -1,5 +1,5 @@
-#ifndef BOX_HPP_X4SVNTNP
-#define BOX_HPP_X4SVNTNP
+#ifndef BOX_HPP_4WFLKG9Q
+#define BOX_HPP_4WFLKG9Q
 
 #include <assert.h>
 
@@ -136,4 +136,4 @@ class Box {
 }
 } /* ca */
 
-#endif /* end of include guard: BOX_HPP_X4SVNTNP */
+#endif /* end of include guard: BOX_HPP_4WFLKG9Q */
