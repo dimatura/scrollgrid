@@ -83,6 +83,19 @@ public:
     scroll_cells[0] = static_cast<grid_ix_t>(round(deviation[0]/resolution));
     scroll_cells[1] = static_cast<grid_ix_t>(round(deviation[1]/resolution));
     scroll_cells[2] = static_cast<grid_ix_t>(round(deviation[2]/resolution));
+
+    // how to interpret the scroll_dist_thresh parameter
+    //
+    // C = center
+    // | = bounds
+    // + = helicopter
+    // <----- = deviation
+    // |~~| = edge threshold
+    //
+    // --|---+-------C---------------|--
+    //   |   <-------                |
+    //   |~~|                        |
+
     // measures closeness to edge. so bigger is better
     Eigen::Matrix<bool, 3, 1> not_within_bounds(radius.array() < (abs_deviation+scroll_dist_thresh_).array());
     scroll_cells = scroll_cells.cwiseProduct(not_within_bounds.cast<grid_ix_t>());
