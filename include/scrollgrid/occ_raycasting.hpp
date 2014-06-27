@@ -17,6 +17,108 @@ static const int32_t CA_SG_COMPLETELY_OCCUPIED = 250;
 static const int32_t CA_SG_BELIEF_UPDATE_POS = 20; // when hit
 static const int32_t CA_SG_BELIEF_UPDATE_NEG = 2; // when pass-through
 
+template<class TraceFunctor>
+void occupancy_trace(const Vec3Ix& start_pos,
+                     const Vec3Ix& end_pos,
+                     const TraceFunctor& fun) {
+  // beware: vec3ix are int64_t
+  int x = start_pos[0],
+      y = start_pos[1],
+      z = start_pos[2];
+  int dx = end_pos[0] - start_pos[0],
+      dy = end_pos[1] - start_pos[1],
+      dz = end_pos[2] - start_pos[2];
+  int sx, sy, sz;
+  //X
+  if ( dx>0 ) {
+    sx = 1;
+  } else if ( dx<0 ) {
+    sx = -1;
+    dx = -dx;
+  } else {
+    sx = 0;
+  }
+
+  //Y
+  if ( dy>0 ) {
+    sy = 1;
+  } else if ( dy<0 ) {
+    sy = -1;
+    dy = -dy;
+  } else {
+    sy = 0;
+  }
+
+  //Z
+  if ( dz>0 ) {
+    sz = 1;
+  } else if ( dz<0 ) {
+    sz = -1;
+    dz = -dz;
+  } else {
+    sz = 0;
+  }
+
+  int ax = 2*dx,
+      ay = 2*dy,
+      az = 2*dz;
+
+  if ( ( dy <= dx ) && ( dz <= dx ) ) {
+    for (int decy=ay-dx, decz=az-dx;
+         ;
+         x+=sx, decy+=ay, decz+=az) {
+      //SetP ( grid,x,y,z,end_pos, atMax, count);
+      fun(x,y,z,false);
+      //Bresenham step
+      if ( x==end_pos[0] ) break;
+      if ( decy>=0 ) {
+        decy-=ax;
+        y+=sy;
+      }
+      if ( decz>=0 ) {
+        decz-=ax;
+        z+=sz;
+      }
+    }
+  } else if ( ( dx <= dy ) && ( dz <= dy ) ) {
+    //dy>=dx,dy
+    for (int decx=ax-dy,decz=az-dy;
+         ;
+         y+=sy,decx+=ax,decz+=az ) {
+      // SetP ( grid,x,y,z,end_pos, atMax, count);
+      fun(x,y,z,false);
+      //Bresenham step
+      if ( y==end_pos[1] ) break;
+      if ( decx>=0 ) {
+        decx-=ay;
+        x+=sx;
+      }
+      if ( decz>=0 ) {
+        decz-=ay;
+        z+=sz;
+      }
+    }
+  } else if ( ( dx <= dz ) && ( dy <= dz ) ) {
+    //dy>=dx,dy
+    for (int decx=ax-dz,decy=ay-dz;
+         ;
+         z+=sz,decx+=ax,decy+=ay ) {
+      //SetP ( grid,x,y,z,end_pos, atMax, count);
+      fun(x,y,z,false);
+      //Bresenham step
+      if ( z==end_pos[2] ) break;
+      if ( decx>=0 ) {
+        decx-=az;
+        x+=sx;
+      } if ( decy>=0 ) {
+        decy-=az;
+        y+=sy;
+      }
+    }
+  }
+  fun(x,y,z,true);
+}
+
 /**
  * Update occupancy information along ray.
  */

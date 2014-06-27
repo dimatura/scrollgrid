@@ -34,9 +34,9 @@ public:
     target_sensor_to_center_.z() = z;
 
     // how far do we get from "target" location before scrolling
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_x", x, 0);
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_y", y, 0);
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_z", z, 0);
+    nh.param<double>("scrolling_strategies/scroll_dist_thresh_x", x, 10);
+    nh.param<double>("scrolling_strategies/scroll_dist_thresh_y", y, 10);
+    nh.param<double>("scrolling_strategies/scroll_dist_thresh_z", z, 5);
     scroll_dist_thresh_.x() = x;
     scroll_dist_thresh_.y() = y;
     scroll_dist_thresh_.z() = z;
