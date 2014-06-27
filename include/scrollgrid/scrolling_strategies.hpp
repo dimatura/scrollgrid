@@ -26,17 +26,17 @@ public:
 
     // if you want to center box around sensor/robot, use (0,0,0)
     double x, y, z;
-    nh.param<double>("scrolling_strategies/target_sensor_to_center_x", x, 0);
-    nh.param<double>("scrolling_strategies/target_sensor_to_center_y", y, 0);
-    nh.param<double>("scrolling_strategies/target_sensor_to_center_z", z, 0);
+    nh.param<double>("/scrolling_strategies/target_sensor_to_center_x", x, 0);
+    nh.param<double>("/scrolling_strategies/target_sensor_to_center_y", y, 0);
+    nh.param<double>("/scrolling_strategies/target_sensor_to_center_z", z, 0);
     target_sensor_to_center_.x() = x;
     target_sensor_to_center_.y() = y;
     target_sensor_to_center_.z() = z;
 
     // how far do we get from "target" location before scrolling
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_x", x, 10);
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_y", y, 10);
-    nh.param<double>("scrolling_strategies/scroll_dist_thresh_z", z, 5);
+    nh.param<double>("/scrolling_strategies/scroll_dist_thresh_x", x, 0);
+    nh.param<double>("/scrolling_strategies/scroll_dist_thresh_y", y, 0);
+    nh.param<double>("/scrolling_strategies/scroll_dist_thresh_z", z, 0);
     scroll_dist_thresh_.x() = x;
     scroll_dist_thresh_.y() = y;
     scroll_dist_thresh_.z() = z;
@@ -48,7 +48,6 @@ public:
 
   ca::Vec3Ix compute(const tf::Transform& wv2laser,
                      const ca::ScrollGrid3<Scalar>& grid) {
-
     //Vec3 origin_laser;
     //origin_laser.x() = wv2laser.getOrigin().getX();
     //origin_laser.y() = wv2laser.getOrigin().getY();
