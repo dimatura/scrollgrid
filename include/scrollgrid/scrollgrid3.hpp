@@ -235,49 +235,64 @@ public:
 
     Vec3Ix new_offset = scroll_offset_ + offset_cells;
 
-    if (offset_cells[0] > 0) {
-      Vec3Ix finish(new_offset[0],
-                    scroll_offset_[1] + dimension_[1],
-                    scroll_offset_[2] + dimension_[2]);
-      clear_cells_fun(scroll_offset_, finish);
-      fix_edges_fun(0, finish[0], scroll_offset_[0]+dimension_[0]-1);
-    } else if (offset_cells[0] < 0) {
-      Vec3Ix start(scroll_offset_[0]+dimension_[0]+offset_cells[0],
-                   scroll_offset_[1],
-                   scroll_offset_[2]);
-      Vec3Ix finish = scroll_offset_ + dimension_;
-      clear_cells_fun(start, finish);
-      fix_edges_fun(0, start[0]-1, scroll_offset_[0]);
-    }
+    // check if there is overlap between current box and box after scroll.
+    // if there is not, then the whole box must be wiped out.
+    if (( abs(offset_cells[0]) >= dimension_[0] ) ||
+        ( abs(offset_cells[1]) >= dimension_[1] ) ||
+        ( abs(offset_cells[2]) >= dimension_[2] ) ) {
 
-    if (offset_cells[1] > 0) {
-      Vec3Ix finish(scroll_offset_[0] + dimension_[0],
-                    new_offset[1],
-                    scroll_offset_[2] + dimension_[2]);
-      clear_cells_fun(scroll_offset_, finish);
-      fix_edges_fun(1, finish[1], scroll_offset_[1]+dimension_[1]-1);
-    } else if(offset_cells[1] < 0) {
-      Vec3Ix start(scroll_offset_[0],
-                   scroll_offset_[1]+dimension_[1]+offset_cells[1],
-                   scroll_offset_[2]);
-      Vec3Ix finish = scroll_offset_ + dimension_;
-      clear_cells_fun(start, finish);
-      fix_edges_fun(1, start[1]-1, scroll_offset_[1]);
-    }
+      clear_cells_fun(scroll_offset_, scroll_offset_+dimension_);
 
-    if (offset_cells[2] > 0) {
-      Vec3Ix finish(scroll_offset_[0] + dimension_[0],
-                    scroll_offset_[1] + dimension_[1],
-                    new_offset[2]);
-      clear_cells_fun(scroll_offset_, finish);
-      fix_edges_fun(2, finish[2], scroll_offset_[2]+dimension_[2]-1);
-    } else if(offset_cells[2] < 0) {
-      Vec3Ix start(scroll_offset_[0],
-                   scroll_offset_[1],
-                   scroll_offset_[2]+dimension_[2]+offset_cells[2]);
-      Vec3Ix finish = scroll_offset_ + dimension_;
-      clear_cells_fun(start, finish);
-      fix_edges_fun(2, start[2]-1, scroll_offset_[2]);
+      // not sure if *all* edges must be fixed or none of them should.
+      // according to current logic none of them should.
+      // TODO caveat: there is an -1 offset in all the edges calculations.
+      // also note: earlier logic completely ignored this case.
+
+    } else {
+      if (offset_cells[0] > 0) {
+        Vec3Ix finish(new_offset[0],
+                      scroll_offset_[1] + dimension_[1],
+                      scroll_offset_[2] + dimension_[2]);
+        clear_cells_fun(scroll_offset_, finish);
+        fix_edges_fun(0, finish[0], scroll_offset_[0]+dimension_[0]-1);
+      } else if (offset_cells[0] < 0) {
+        Vec3Ix start(scroll_offset_[0]+dimension_[0]+offset_cells[0],
+                     scroll_offset_[1],
+                     scroll_offset_[2]);
+        Vec3Ix finish = scroll_offset_ + dimension_;
+        clear_cells_fun(start, finish);
+        fix_edges_fun(0, start[0]-1, scroll_offset_[0]);
+      }
+
+      if (offset_cells[1] > 0) {
+        Vec3Ix finish(scroll_offset_[0] + dimension_[0],
+                      new_offset[1],
+                      scroll_offset_[2] + dimension_[2]);
+        clear_cells_fun(scroll_offset_, finish);
+        fix_edges_fun(1, finish[1], scroll_offset_[1]+dimension_[1]-1);
+      } else if(offset_cells[1] < 0) {
+        Vec3Ix start(scroll_offset_[0],
+                     scroll_offset_[1]+dimension_[1]+offset_cells[1],
+                     scroll_offset_[2]);
+        Vec3Ix finish = scroll_offset_ + dimension_;
+        clear_cells_fun(start, finish);
+        fix_edges_fun(1, start[1]-1, scroll_offset_[1]);
+      }
+
+      if (offset_cells[2] > 0) {
+        Vec3Ix finish(scroll_offset_[0] + dimension_[0],
+                      scroll_offset_[1] + dimension_[1],
+                      new_offset[2]);
+        clear_cells_fun(scroll_offset_, finish);
+        fix_edges_fun(2, finish[2], scroll_offset_[2]+dimension_[2]-1);
+      } else if(offset_cells[2] < 0) {
+        Vec3Ix start(scroll_offset_[0],
+                     scroll_offset_[1],
+                     scroll_offset_[2]+dimension_[2]+offset_cells[2]);
+        Vec3Ix finish = scroll_offset_ + dimension_;
+        clear_cells_fun(start, finish);
+        fix_edges_fun(2, start[2]-1, scroll_offset_[2]);
+      }
     }
 
     box_.translate((offset_cells.cast<Scalar>()*resolution_));
@@ -295,6 +310,8 @@ public:
    * same for j and k
    * Note that boxes may overlap.
    *
+   * Note: this may be deprecated in favor of the clearfun callbacks
+   * in scroll.
    */
   void get_clear_boxes(const Vec3Ix& offset_cells,
                        Vec3Ix& clear_i_min, Vec3Ix& clear_i_max,

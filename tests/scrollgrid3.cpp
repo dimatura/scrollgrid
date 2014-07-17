@@ -364,6 +364,50 @@ TEST(scrollgrid3, mem_roundtrip3) {
 
 }
 
+#if 0
+struct TestClearCellsFun : ca::ClearCellsFun {
+  TestClearCellsFun(ca::Vec3Ix* last_start, ca::Vec3Ix* last_finish) {
+  }
+  virtual void operator()(const ca::Vec3Ix& start,
+                          const ca::Vec3Ix& finish) const {
+    *last_start = start;
+    *last_finish = finish;
+  }
+  ca::Vec3Ix *last_start_, *last_finish_;
+};
+
+TEST(scrollgrid3, big_offset1) {
+  // when scroll offset is bigger than grid dimensions
+
+  Vector3f center(0.f, 0.f, 0.f);
+  Vec3Ix dim(20, 10, 40);
+  float res = 0.15;
+  ca::ScrollGrid3f grid3( center, dim, res);
+
+  grid3.scroll( ca::Vec3Ix(25, 0, 0) );
+
+  std::vector<grid_ix_t> ix;
+  ix += -10, -3, 0, 4, 11;
+
+  BOOST_FOREACH(grid_ix_t i, ix) {
+    BOOST_FOREACH(grid_ix_t j, ix) {
+      BOOST_FOREACH(grid_ix_t k, ix) {
+        Vec3Ix gix(i, j, k);
+        gix += (grid3.scroll_offset() + grid3.radius_ijk());
+        mem_ix_t mix = grid3.grid_to_mem(gix);
+        //Vec3Ix gix2 = grid3.mem_to_grid_undo_wrap(mix);
+        Vec3Ix gix2 = grid3.mem_to_grid(mix);
+        EXPECT_EQ( gix[0], gix2[0] );
+        EXPECT_EQ( gix[1], gix2[1] );
+        EXPECT_EQ( gix[2], gix2[2] );
+        //EXPECT_TRUE( gix.cwiseEqual(gix2).all() );
+
+      }
+    }
+  }
+}
+#endif
+
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
