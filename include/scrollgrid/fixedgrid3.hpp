@@ -89,7 +89,7 @@ public:
              const Vec3Ix& dimension,
              Scalar resolution) {
     box_.set_center(center);
-    box_.set_radius((dimension.cast<double>()*resolution)/2);
+    box_.set_radius((dimension.template cast<Scalar>()*resolution)/2);
     origin_ = center - box_.radius();
     dimension_ = dimension;
     num_cells_ = dimension.prod();
@@ -207,7 +207,7 @@ public:
   Vec3 min_pt() const { return box_.min_pt(); }
   Vec3 max_pt() const { return box_.max_pt(); }
   const Vec3& center() const { return box_.center(); }
-  double resolution() const { return resolution_; }
+  Scalar resolution() const { return resolution_; }
 
   // basically equivalent to scroll_offset = (0, 0, 0)
   grid_ix_t num_cells() const { return num_cells_; }
