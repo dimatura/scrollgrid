@@ -41,10 +41,16 @@ public:
     scroll_dist_thresh_.y() = y;
     scroll_dist_thresh_.z() = z;
   }
+  ScrollForBaseFrame(Vec3 target_sensor_to_center, Vec3 scroll_dist_thresh):
+    target_sensor_to_center_(target_sensor_to_center),
+    scroll_dist_thresh_(scroll_dist_thresh){
+  }
 
-  virtual ~ScrollForBaseFrame() { }
-
-public:
+  public:
+  void setParameters(Vec3 target_sensor_to_center, Vec3 scroll_dist_thresh) {
+    target_sensor_to_center_ = target_sensor_to_center;
+    scroll_dist_thresh_ = scroll_dist_thresh;
+  }
 
   ca::Vec3Ix compute(const tf::Transform& wv2laser,
                      const ca::ScrollGrid3<Scalar>& grid) {
