@@ -225,7 +225,7 @@ void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
          ;
          z+=sz,decx+=ax,decy+=ay ) {
 
-      grid_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
+      mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       int32_t new_value = static_cast<int32_t>(array3[mem_ix])-CA_SG_BELIEF_UPDATE_NEG;
       array3[mem_ix] = static_cast<uint8_t>(std::max(CA_SG_COMPLETELY_FREE, new_value));
 
@@ -245,7 +245,7 @@ void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
   // here we are at the end of the ray.
   // here we update according to xyz
 
-  grid_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
+  mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
   int32_t new_value = static_cast<int32_t>(array3[mem_ix])+CA_SG_BELIEF_UPDATE_POS;
   array3[mem_ix] = static_cast<uint8_t>(std::min(CA_SG_COMPLETELY_OCCUPIED, new_value));
 
