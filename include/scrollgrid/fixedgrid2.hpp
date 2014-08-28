@@ -23,15 +23,11 @@
 namespace ca
 {
 
-template<class CellT>
+template<class Scalar>
 class FixedGrid2 {
 public:
-  typedef CellT CellType;
-  typedef Eigen::Vector2d Vec2d;
-
-  typedef CellT * ArrayType;
-  typedef CellT * iterator;
-  typedef const CellT * const_iterator;
+  typedef Scalar ScalarType;
+  typedef Eigen::Matrix<Scalar, 2, 1> Vec2;
 
   typedef boost::shared_ptr<FixedGrid2> Ptr;
   typedef boost::shared_ptr<const FixedGrid2> ConstPtr;
@@ -42,81 +38,59 @@ public:
       origin_(0, 0),
       dimension_(0, 0),
       num_cells_(0),
-      stride_(0),
-      resolution_(0),
-      grid_(NULL),
-      begin_(NULL),
-      end_(NULL)
+      strides_(0, 0),
+      resolution_(0)
   { }
 
-  FixedGrid2(const Vec2d& center,
+  FixedGrid2(const Vec2& center,
              const Vec2Ix& dimension,
-             double resolution) :
-      box_(center-(dimension.cast<double>()*resolution)/2,
-           center+(dimension.cast<double>()*resolution)/2),
+             Scalar resolution) :
+      box_(center-(dimension.cast<Scalar>()*resolution)/2,
+           center+(dimension.cast<Scalar>()*resolution)/2),
       origin_(center-box_.radius()),
       dimension_(dimension),
       num_cells_(dimension.prod()),
-      stride_(dimension[1]),
-      resolution_(resolution),
-      grid_(new CellT[num_cells_]),
-      begin_(&grid_[0]),
-      end_(&grid_[0]+num_cells_)
+      strides_(dimension[1], 1),
+      resolution_(resolution)
   { }
 
-  virtual ~FixedGrid2() {
-    if (grid_ != NULL) { delete[] grid_; }
-    grid_ = begin_ = end_ = NULL;
+  FixedGrid2(const FixedGrid2& other) :
+      box_(other.box_),
+      origin_(other.origin_),
+      dimension_(other.dimension_),
+      num_cells_(other.num_cells_),
+      strides_(other.strides_),
+      resolution_(other.resolution_)
+  {
   }
 
-private:
-  FixedGrid2(const FixedGrid2& other);
-  FixedGrid2& operator=(const FixedGrid2& other);
+  FixedGrid2& operator=(const FixedGrid2& other) {
+    if (*this==other) { return *this; }
+    box_ = other.box_;
+    origin_ = other.origin_;
+    dimension_ = other.dimension_;
+    num_cells_ = other.num_cells_;
+    strides_ = other.strides_;
+    resolution_ = other.resolution_;
+    return *this;
+  }
+
+  virtual ~FixedGrid2() { }
 
 public:
-
-  void reset(const Vec2d& center,
+  void reset(const Vec2& center,
              const Vec2Ix& dimension,
-             double resolution) {
+             Scalar resolution) {
     box_.set_center(center);
-    box_.set_radius((dimension.cast<double>()*resolution)/2);
+    box_.set_radius((dimension.cast<Scalar>()*resolution)/2);
     origin_ = center - box_.radius();
     dimension_ = dimension;
     num_cells_ = dimension.prod();
-    stride_ = dimension[1];
+    strides_ = Vec2Ix(dimension[1], 1);
     resolution_ = resolution;
-    if (grid_ != NULL) { delete[] grid_; }
-    grid_ = new CellT[num_cells_];
-    begin_ = &grid_[0];
-    end_ = &grid_[0]+num_cells_;
   }
 
-  void set_zero() {
-    CellT empty_cell;
-    std::fill(&grid_[0], &grid_[0]+num_cells_, empty_cell);
-  }
-
-  void copy_from(ca::FixedGrid2<CellT>& other) {
-    this->reset(other.center(),
-                other.dimension(),
-                other.resolution());
-    std::copy(other.begin(), other.end(), &grid_[0]);
-  }
-
-  /**
-   *  purely memory-based view of the data.
-   */
-  iterator begin() { return begin_; }
-  const_iterator cbegin() const { return begin_; }
-
-  iterator end() { return end_; }
-  const_iterator cend() { return end_; }
-
-  /**
-   * Initialize with same physical dimensions as other.
-   * Does not copy contents of other.
-   */
-  void init_like(const FixedGrid2& other) {
+  void copy_from(ca::FixedGrid2<Scalar>& other) {
     this->reset(other.center(),
                 other.dimension(),
                 other.resolution());
@@ -126,7 +100,11 @@ public:
    * Is inside 3D box containing grid?
    * pt is in same frame as center (probably world_view)
    */
-  bool is_inside_box(const Vec2d& pt) const {
+  bool is_inside_box(Scalar x, Scalar y) const {
+    return box_.contains(Vec2(x, y));
+  }
+
+  bool is_inside_box(const Vec2& pt) const {
     return box_.contains(pt);
   }
 
@@ -151,96 +129,65 @@ public:
    * Given position in world coordinates, return grid coordinates.
    * Note: does not check if point is inside grid.
    */
-  Vec2Ix world_to_grid(const Vec2d& xyz) const {
-    Vec2d tmp = ((xyz - origin_).array() - 0.5*resolution_)/resolution_;
+  Vec2Ix world_to_grid(const Vec2& xy) const {
+    Vec2 tmp = ((xy - origin_).array() - 0.5*resolution_)/resolution_;
     //return tmp.cast<grid_ix_t>();
-    return Vec2Ix(round(tmp.x()), round(tmp.y()), round(tmp.z()));
+    return Vec2Ix(round(tmp.x()), round(tmp.y()));
   }
 
-  Vec2Ix world_to_grid(double x, double y, double z) const {
-    return this->world_to_grid(Vec2d(x, y, z));
+  Vec2Ix world_to_grid(Scalar x, Scalar y) const {
+    return this->world_to_grid(Vec2(x, y));
   }
 
-  Vec2d grid_to_world(const Vec2Ix& grid_ix) const {
-    Vec2d w((grid_ix.cast<double>()*resolution_ + origin_).array() + 0.5*resolution_);
+  Vec2 grid_to_world(const Vec2Ix& grid_ix) const {
+    Vec2 w((grid_ix.cast<Scalar>()*resolution_ + origin_).array() + 0.5*resolution_);
     return w;
   }
 
-  Vec2d grid_to_world(grid_ix_t i, grid_ix_t j) const {
+  Vec2 grid_to_world(grid_ix_t i, grid_ix_t j) const {
     return this->grid_to_world(Vec2Ix(i, j));
   }
 
-  grid_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j) const {
+  mem_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j) const {
     return this->grid_to_mem(Vec2Ix(i, j));
   }
 
   /**
    * Note that this wraps the z dimension.
+   * TODO c-order/f-order config
    */
-  grid_ix_t grid_to_mem(const Vec2Ix& grid_ix) const {
-    return stride_*grid_ix[0] + grid_ix[1];
+  mem_ix_t grid_to_mem(const Vec2Ix& grid_ix) const {
+    return strides_.dot(grid_ix);
   }
 
-  Vec2Ix mem_to_grid(grid_ix_t mem_ix) const {
-    grid_ix_t i = mem_ix/stride_;
-    mem_ix -= i*stride_;
+  Vec2Ix mem_to_grid(mem_ix_t mem_ix) const {
+    grid_ix_t i = mem_ix/strides_[0];
+    mem_ix -= i*strides_[0];
     grid_ix_t j = mem_ix;
     mem_ix -= j;
-
     return Vec2Ix(i, j);
-  }
-
-  /**
-   * Note: no bound checking.
-   */
-  CellType& get(grid_ix_t i, grid_ix_t j) {
-    grid_ix_t mem_ix = this->grid_to_mem(i, j);
-    return grid_[mem_ix];
-  }
-
-  const CellType& get(grid_ix_t i, grid_ix_t j) const {
-    grid_ix_t mem_ix = this->grid_to_mem(i, j);
-    return grid_[mem_ix];
-  }
-
-  CellType& get(const Vec2Ix& grid_ix) {
-    grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
-    return grid_[mem_ix];
-  }
-
-  const CellType& get(const Vec2Ix& grid_ix) const {
-    grid_ix_t mem_ix = this->grid_to_mem(grid_ix);
-    return grid_[mem_ix];
-  }
-
-  CellType& get(grid_ix_t mem_ix) {
-    return grid_[mem_ix];
-  }
-
-  const CellType& get(grid_ix_t mem_ix) const {
-    return grid_[mem_ix];
   }
 
  public:
   grid_ix_t dim_i() const { return dimension_[0]; }
   grid_ix_t dim_j() const { return dimension_[1]; }
   const Vec2Ix& dimension() const { return dimension_; }
-  const Vec2d& radius() const { return box_.radius(); }
-  const Vec2d& origin() const { return origin_; }
-  Vec2d min_pt() const { return box_.min_pt(); }
-  Vec2d max_pt() const { return box_.max_pt(); }
-  const Vec2d& center() const { return box_.center(); }
-  double resolution() const { return resolution_; }
+  const Vec2& radius() const { return box_.radius(); }
+  const Vec2& origin() const { return origin_; }
+  Vec2 min_pt() const { return box_.min_pt(); }
+  Vec2 max_pt() const { return box_.max_pt(); }
+  const Vec2& center() const { return box_.center(); }
+  Scalar resolution() const { return resolution_; }
 
   grid_ix_t num_cells() const { return num_cells_; }
 
  private:
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
-  ca::scrollgrid::Box<double, 2> box_;
+  ca::scrollgrid::Box<Scalar, 2> box_;
 
   // static origin of the grid coordinate system.
-  Vec2d origin_;
+  Vec2 origin_;
 
   // number of grid cells along each axis
   Vec2Ix dimension_;
@@ -250,14 +197,10 @@ public:
 
   // grid strides to translate from linear to 3D layout.
   // C-ordering, ie x slowest, z fastest.
-  grid_ix_t stride_;
+  Vec2Ix strides_;
 
   // size of grid cells
-  double resolution_;
-
-  ArrayType grid_;
-  iterator begin_, end_;
-
+  Scalar resolution_;
 };
 
 }

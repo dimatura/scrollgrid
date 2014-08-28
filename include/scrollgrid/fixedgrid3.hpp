@@ -158,18 +158,18 @@ public:
   /**
    * given grid ijk coordinate, return linear memory index.
    */
-  grid_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
+  mem_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
     return this->grid_to_mem(Vec3Ix(i, j, k));
   }
 
-  grid_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
+  mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
     return strides_.dot(grid_ix);
   }
 
   /**
    * given linear memory index, return ijk coordinate.
    */
-  Vec3Ix mem_to_grid(grid_ix_t mem_ix) const {
+  Vec3Ix mem_to_grid(mem_ix_t mem_ix) const {
     grid_ix_t i = mem_ix/strides_[0];
     mem_ix -= i*strides_[0];
     grid_ix_t j = mem_ix/strides_[1];
