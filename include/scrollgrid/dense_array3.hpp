@@ -24,6 +24,8 @@ namespace ca
  * Maps ijk to an CellT.
  * No notion of origin, scrolling etc.
  * The *Grid3 classes handle that.
+ * TODO maybe use boost::shared_array,
+ * or std::shared_array if we move to C++11
  *
  */
 template<class CellT>
@@ -187,6 +189,7 @@ public:
 
   /**
    * Bound check with ROS_ASSERT
+   * Not 'really' safe
    */
   CellType& get_safe(grid_ix_t mem_ix) {
     ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
@@ -195,6 +198,7 @@ public:
 
   /**
    * Bound check with ROS_ASSERT
+   * Not 'really' safe
    */
   const CellType& get_safe(grid_ix_t mem_ix) const {
     ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
