@@ -1,7 +1,7 @@
 #ifndef SPARSE_ARRAY3_HPP_LWA5VI1M
 #define SPARSE_ARRAY3_HPP_LWA5VI1M
 
-#include <tr1/unordered_map>
+#include <unordered_map>
 
 #include <boost/shared_ptr.hpp>
 
@@ -31,19 +31,23 @@ public:
   typedef boost::shared_ptr<SparseArray3> Ptr;
   typedef boost::shared_ptr<const SparseArray3> ConstPtr;
 
-  typedef typename std::tr1::unordered_map<uint64_t, CellType, TrivialHash> MapType;
+  typedef typename std::unordered_map<uint64_t, CellType, TrivialHash> MapType;
   //typedef typename boost::container::flat_map<uint64_t, CellType> MapType;
 
   typedef typename MapType::iterator iterator;
   typedef typename MapType::const_iterator const_iterator;
 
 public:
-  SparseArray3() {
-  }
+  SparseArray3() { }
+
+  SparseArray3(const SparseArray3& other) = delete;
+
+  SparseArray3& operator=(const SparseArray3& other) = delete;
 
   virtual ~SparseArray3() { }
 
 public:
+
   CellType& operator[](uint64_t hash_ix) {
     //ROS_INFO_STREAM("hash_map_.load_factor() = " << hash_map_.load_factor());
     return hash_map_[hash_ix];
@@ -84,11 +88,8 @@ public:
   // interesting: clear_deleted
 
 private:
-  MapType hash_map_;
 
-private:
-  SparseArray3(const SparseArray3& other);
-  SparseArray3& operator=(const SparseArray3& other);
+  MapType hash_map_;
 
 };
 
