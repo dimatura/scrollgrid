@@ -47,9 +47,7 @@ class Box {
   }
 
   Box& operator=(const Box& other) {
-    if (*this==other) {
-      return *this;
-    }
+    if (this==&other) { return *this; }
     center_ = other.center_;
     radius_ = other.radius_;
     bounds_[0] = other.bounds_[0];
