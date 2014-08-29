@@ -1,6 +1,8 @@
 #ifndef RAY_HPP_TVFS3AKQ
 #define RAY_HPP_TVFS3AKQ
 
+#include <tuple>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -29,11 +31,11 @@ class Ray3 {
          direction(direction),
          tmin(Scalar(0)),
          tmax(std::numeric_limits<Scalar>::max()),
-         invdir(Scalar(1.) / direction.array())
+         invdir(Scalar(1.) / direction.array()),
+         sign(invdir.x() < 0,
+              invdir.y() < 0,
+              invdir.z() < 0)
   {
-    sign[0] = (invdir.x() < 0);
-    sign[1] = (invdir.y() < 0);
-    sign[2] = (invdir.z() < 0);
   }
 
  public:
@@ -45,7 +47,7 @@ class Ray3 {
   Vec3 origin, direction;
   Scalar tmin, tmax; /// ray min and max distances
   Vec3 invdir; // for convenience in AABB intersection
-  int sign[3];
+  boost::tuple<int, int, int> sign;
 
 };
 

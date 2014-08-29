@@ -21,19 +21,19 @@ namespace ca
  */
 template<typename Scalar>
 bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
-                        ca::scrollgrid::Ray3<Scalar> &r) {
-  Scalar tmin = (box.bound(r.sign[0]).x() - r.origin.x()) * r.invdir.x();
-  Scalar tmax = (box.bound(1-r.sign[0]).x() - r.origin.x()) * r.invdir.x();
+                        const ca::scrollgrid::Ray3<Scalar> &r) {
+  Scalar tmin = (box.bound(   boost::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
+  Scalar tmax = (box.bound( 1-boost::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
 
-  Scalar tymin = (box.bound(r.sign[1]).y() - r.origin.y()) * r.invdir.y();
-  Scalar tymax = (box.bound(1-r.sign[1]).y() - r.origin.y()) * r.invdir.y();
+  Scalar tymin = (box.bound(  boost::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
+  Scalar tymax = (box.bound(1-boost::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
 
   if ((tmin > tymax) || (tymin > tmax)) return false;
   if (tymin > tmin) tmin = tymin;
   if (tymax < tmax) tmax = tymax;
 
-  Scalar tzmin = (box.bound(r.sign[2]).z() - r.origin.z()) * r.invdir.z();
-  Scalar tzmax = (box.bound(1-r.sign[2]).z() - r.origin.z()) * r.invdir.z();
+  Scalar tzmin = (box.bound(  boost::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
+  Scalar tzmax = (box.bound(1-boost::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
 
   if ((tmin > tzmax) || (tzmin > tmax)) return false;
   if (tzmin > tmin) tmin = tzmin;
