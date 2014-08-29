@@ -199,6 +199,7 @@ public:
   }
 
  public:
+  const ca::scrollgrid::Box<Scalar, 3>& box() const { return box_; }
   grid_ix_t dim_i() const { return dimension_[0]; }
   grid_ix_t dim_j() const { return dimension_[1]; }
   grid_ix_t dim_k() const { return dimension_[2]; }
