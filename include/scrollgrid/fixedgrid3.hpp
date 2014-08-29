@@ -71,7 +71,7 @@ public:
   }
 
   FixedGrid3& operator=(const FixedGrid3& other) {
-    if (*this==other) { return *this; }
+    if (this==&other) { return *this; }
     box_ = other.box_;
     origin_ = other.origin_;
     dimension_ = other.dimension_;
