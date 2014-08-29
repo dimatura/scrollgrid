@@ -1,7 +1,8 @@
 #ifndef SPARSE_ARRAY3_HPP_LWA5VI1M
 #define SPARSE_ARRAY3_HPP_LWA5VI1M
 
-#include <unordered_map>
+//#include <unordered_map>
+#include <boost/unordered_map.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -31,7 +32,7 @@ public:
   typedef boost::shared_ptr<SparseArray3> Ptr;
   typedef boost::shared_ptr<const SparseArray3> ConstPtr;
 
-  typedef typename std::unordered_map<uint64_t, CellType, TrivialHash> MapType;
+  typedef typename boost::unordered_map<uint64_t, CellType, TrivialHash> MapType;
   //typedef typename boost::container::flat_map<uint64_t, CellType> MapType;
 
   typedef typename MapType::iterator iterator;
@@ -88,7 +89,6 @@ public:
   // interesting: clear_deleted
 
 private:
-
   MapType hash_map_;
 
 };

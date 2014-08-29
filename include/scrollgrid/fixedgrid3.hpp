@@ -45,6 +45,7 @@ public:
    * @param center: center of the grid in global frame
    * @param dimension: number of grid cells along each coordinate
    * @param resolution: size of each grid cell side. they are cubic.
+   * Assuming "ZYX" layout, i.e. z changes fastest.
    */
   FixedGrid3(const Vec3& center,
              const Vec3Ix& dimension,

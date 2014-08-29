@@ -21,7 +21,7 @@ namespace ca
  */
 template<typename Scalar>
 bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
-                        const ca::scrollgrid::Ray3<Scalar> &r) {
+                        ca::scrollgrid::Ray3<Scalar> &r) {
   Scalar tmin = (box.bound(   boost::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
   Scalar tmax = (box.bound( 1-boost::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
 
