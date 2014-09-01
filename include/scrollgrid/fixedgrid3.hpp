@@ -35,6 +35,7 @@ public:
   FixedGrid3() :
       box_(),
       origin_(0, 0, 0),
+      min_world_corner_ijk_(0, 0, 0),
       dimension_(0, 0, 0),
       num_cells_(0),
       strides_(0, 0, 0),
@@ -45,29 +46,39 @@ public:
    * @param center: center of the grid in global frame
    * @param dimension: number of grid cells along each coordinate
    * @param resolution: size of each grid cell side. they are cubic.
-   * Assuming "ZYX" layout, i.e. z changes fastest.
+   * Default assumes "ZYX" layout, i.e. z changes fastest.
    */
   FixedGrid3(const Vec3& center,
              const Vec3Ix& dimension,
-             Scalar resolution) :
+             Scalar resolution,
+             bool x_fastest=false) :
       box_(center-(dimension.cast<Scalar>()*resolution)/2,
            center+(dimension.cast<Scalar>()*resolution)/2),
       origin_(center-box_.radius()),
       dimension_(dimension),
       num_cells_(dimension.prod()),
-      strides_(dimension.tail<2>().prod(), dimension[2], 1),
       resolution_(resolution)
-  { }
+  {
+    if (x_fastest) {
+      strides_ = Vec3Ix(1, dimension[0], dimension.head<2>().prod());
+    } else {
+      strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
+    }
+    this->calc_min_corner_ijk();
+
+  }
 
   virtual ~FixedGrid3() { }
 
   FixedGrid3(const FixedGrid3& other) :
       box_(other.box_),
       origin_(other.origin_),
+      min_world_corner_ijk_(other.min_world_corner_ijk_),
       dimension_(other.dimension_),
       num_cells_(other.num_cells_),
       strides_(other.strides_),
       resolution_(other.resolution_)
+
   {
   }
 
@@ -75,6 +86,7 @@ public:
     if (this==&other) { return *this; }
     box_ = other.box_;
     origin_ = other.origin_;
+    min_world_corner_ijk_ = other.min_world_corner_ijk_;
     dimension_ = other.dimension_;
     num_cells_ = other.num_cells_;
     strides_ = other.strides_;
@@ -89,13 +101,18 @@ public:
    */
   void reset(const Vec3& center,
              const Vec3Ix& dimension,
-             Scalar resolution) {
+             Scalar resolution,
+             bool x_fastest=false) {
     box_.set_center(center);
     box_.set_radius((dimension.template cast<Scalar>()*resolution)/2);
     origin_ = center - box_.radius();
     dimension_ = dimension;
     num_cells_ = dimension.prod();
-    strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
+    if (x_fastest) {
+      strides_ = Vec3Ix(1, dimension[0], dimension.head<2>().prod());
+    } else {
+      strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
+    }
     resolution_ = resolution;
   }
 
@@ -184,19 +201,31 @@ public:
    * pack into grid_ix_t as [int16, int16, int16, 0]
    * note grid_ix_it is a signed 64-bit type
    * this gives range of [-32768, 32768] for each coordinate
-   * so if voxel is 5cm, [-1638.4 m, 1638.4 m] relative to origin_.
+   * so if voxel is 5cm, [-1638.4 m, 1638.4 m] relative to initial center.
    * this is useful as a unique hash.
    * this is better than mem_ix because mem_ix is ambiguous for absolute ijk.
    * if we use linear mem_ix as a hash,
    * then because of scrolling there may be collisions, and mem_ix become
    * invalidated once the corresponding voxel scrolls out.
    */
-  grid_ix_t grid_to_hash(grid_ix_t i, grid_ix_t j, grid_ix_t k) const {
-    ROS_ASSERT( i > std::numeric_limits<int16_t>::min() && i < std::numeric_limits<int16_t>::max() );
-    ROS_ASSERT( j > std::numeric_limits<int16_t>::min() && j < std::numeric_limits<int16_t>::max() );
-    ROS_ASSERT( k > std::numeric_limits<int16_t>::min() && k < std::numeric_limits<int16_t>::max() );
-    // TODO get from scrollgrid3
-    return 0;
+  uint64_t grid_to_hash(const Vec3Ix& grid_ix) const {
+    // grid2 should be all positive
+    Vec3Ix grid2(grid_ix - min_world_corner_ijk_);
+
+    uint64_t hi = static_cast<uint64_t>(grid2[0]);
+    uint64_t hj = static_cast<uint64_t>(grid2[1]);
+    uint64_t hk = static_cast<uint64_t>(grid2[2]);
+    uint64_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    return h;
+  }
+
+  Vec3Ix hash_to_grid(uint64_t hix) const {
+    uint64_t hi = (hix & 0xffff000000000000) >> 48;
+    uint64_t hj = (hix & 0x0000ffff00000000) >> 32;
+    uint64_t hk = (hix & 0x00000000ffff0000) >> 16;
+    Vec3Ix grid_ix(hi, hj, hk);
+    grid_ix += min_world_corner_ijk_;
+    return grid_ix;
   }
 
  public:
@@ -222,6 +251,19 @@ public:
   grid_ix_t num_cells() const { return num_cells_; }
 
  private:
+  void calc_min_corner_ijk() {
+    // set the "minimum possible" ijk, assuming the grid
+    // won't stray "too far" from the initial position.
+    // too far == more than 2^15 grid cells.
+    // so if you voxel resolution is 1 cm, 327.68 m.
+    Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
+    Vec3 m3(m, m, m);
+    m3 += box_.center();
+    min_world_corner_ijk_ = this->world_to_grid(m3);
+  }
+
+
+ private:
   // 3d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
   ca::scrollgrid::Box<Scalar, 3> box_;
@@ -229,6 +271,9 @@ public:
   // static origin of the grid coordinate system.
   // it's center - box.radius
   Vec3 origin_;
+
+  // minimum world corner in ijk. used for hash
+  Vec3Ix min_world_corner_ijk_;
 
   // number of grid cells along each axis
   Vec3Ix dimension_;

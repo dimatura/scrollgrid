@@ -77,6 +77,10 @@ public:
       resolution_(0)
   { }
 
+  /**
+   * TODO is there ever a use case for putting the origin far from the initial
+   * center?
+   */
   ScrollGrid3(const Vec3& center,
               const Vec3Ix& dimension,
               Scalar resolution,
@@ -95,16 +99,13 @@ public:
       resolution_(resolution)
   {
     // calculate coordinates of min corner in ijk
-    Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
-    Vec3 m3(m, m, m);
-    min_world_corner_ijk_ = this->world_to_grid(m3);
-
     if (x_fastest) {
       strides_ = Vec3Ix(1, dimension[0], dimension.head<2>().prod());
     } else {
       strides_ = Vec3Ix(dimension.tail<2>().prod(), dimension[2], 1);
     }
 
+    this->calc_min_corner_ijk();
     this->update_wrap_ijk();
   }
 
@@ -165,16 +166,10 @@ public:
     scroll_offset_.setZero();
     last_ijk_ = scroll_offset_ + dimension_;
 
-    this->update_wrap_ijk();
-
     resolution_ = resolution;
 
-    Vec3 m;
-    m[0] = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
-    m[1] = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
-    m[2] = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
-    min_world_corner_ijk_ = this->world_to_grid(m);
-
+    this->update_wrap_ijk();
+    this->calc_min_corner_ijk();
   }
 
   /**
@@ -395,6 +390,7 @@ public:
   /**
    * Like world to grid but xyz are offset by scroll grid center.
    * DON'T USE OR YOU WILL SCREW UP.
+   * TODO why did I write this?
    */
   Vec3Ix offset_world_to_grid(const Vec3& xyz) const {
     Vec3 tmp = ((xyz + box_.center() - origin_).array() - 0.5*resolution_)/resolution_;
@@ -416,8 +412,9 @@ public:
 
   /**
    * Translate grid indices to an address in linear memory.
-   * Does not check if grid_ix is inside current grid box.
-   * Assumes C-order, x the slowest and z the fastest.
+   * This version always gives the "correct" mapping to a the "wrapped world"
+   * assumption in the scrolling grid, even if the query voxel is outside
+   * the box. However, it is slow because of the modulo operator.
    */
   mem_ix_t grid_to_mem_slow(const Vec3Ix& grid_ix) const {
     Vec3Ix grid_ix2(ca::mod_wrap(grid_ix[0], dimension_[0]),
@@ -428,8 +425,10 @@ public:
 
   /**
    * Faster than grid_to_mem_slow, as it avoids modulo.
-   * But it only works if the grid_ix are inside the bounding box.
-   * Hopefully branch prediction kicks in when using this in a loop.
+   * It only works if the grid_ix are inside the bounding box.
+   * Hopefully branch prediction kicks in when using this in a tight loop.
+   * TODO write a version avoiding the branching, possibly with
+   * an iterator object.
    */
   mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
     ROS_ASSERT( this->is_inside_grid(grid_ix) );
@@ -454,6 +453,15 @@ public:
   }
 
   /**
+   * pack into grid_ix_t as [int16, int16, int16, 0]
+   * note grid_ix_it is a signed 64-bit type
+   * this gives range of [-32768, 32768] for each coordinate
+   * so if voxel is 5cm, [-1638.4 m, 1638.4 m] relative to initial center.
+   * this is useful as a unique hash.
+   * this is better than mem_ix because mem_ix is ambiguous for absolute ijk.
+   * if we use linear mem_ix as a hash,
+   * then because of scrolling there may be collisions, and mem_ix become
+   * invalidated once the corresponding voxel scrolls out.
    * TODO should we do this in the sparse_array3 module?
    */
   uint64_t grid_to_hash(const Vec3Ix& grid_ix) const {
@@ -542,7 +550,17 @@ public:
     unwrap_ijk_[0] = ca::mod_wrap(scroll_offset_[0], dimension_[0]);
     unwrap_ijk_[1] = ca::mod_wrap(scroll_offset_[1], dimension_[1]);
     unwrap_ijk_[2] = ca::mod_wrap(scroll_offset_[2], dimension_[2]);
+  }
 
+  void calc_min_corner_ijk() {
+    // set the "minimum possible" ijk, assuming the grid
+    // won't stray "too far" from the initial position.
+    // too far == more than 2^15 grid cells.
+    // so if you voxel resolution is 1 cm, 327.68 m.
+    Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
+    Vec3 m3(m, m, m);
+    m3 += box_.center();
+    min_world_corner_ijk_ = this->world_to_grid(m3);
   }
 
  private:
