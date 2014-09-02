@@ -18,6 +18,7 @@ namespace ca
  * Axis-aligned bounding box intersection test.
  * Reference:
  * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
+ * tmin and tmax are updated
  */
 template<typename Scalar>
 bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
@@ -28,18 +29,18 @@ bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
   Scalar tymin = (box.bound(  boost::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
   Scalar tymax = (box.bound(1-boost::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
 
-  if ((tmin > tymax) || (tymin > tmax)) return false;
-  if (tymin > tmin) tmin = tymin;
-  if (tymax < tmax) tmax = tymax;
+  if ((tmin > tymax) || (tymin > tmax)) { return false; }
+  if (tymin > tmin) { tmin = tymin; }
+  if (tymax < tmax) { tmax = tymax; }
 
   Scalar tzmin = (box.bound(  boost::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
   Scalar tzmax = (box.bound(1-boost::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
 
-  if ((tmin > tzmax) || (tzmin > tmax)) return false;
-  if (tzmin > tmin) tmin = tzmin;
-  if (tzmax < tmax) tmax = tzmax;
-  if (tmin > r.tmin) r.tmin = tmin;
-  if (tmax < r.tmax) r.tmax = tmax;
+  if ((tmin > tzmax) || (tzmin > tmax)) { return false; }
+  if (tzmin > tmin) { tmin = tzmin; }
+  if (tzmax < tmax) { tmax = tzmax; }
+  if (tmin > r.tmin) { r.tmin = tmin; }
+  if (tmax < r.tmax) { r.tmax = tmax; }
   return true;
 }
 
