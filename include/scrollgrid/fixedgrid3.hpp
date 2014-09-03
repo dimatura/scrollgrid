@@ -228,11 +228,34 @@ public:
     return grid_ix;
   }
 
+  /**
+   * Like the above but does not offset by origin.
+   * In the fixed case we assume the min ijk for origin is 0,0,0.
+   */
+  uint64_t local_grid_to_hash(const Vec3Ix& grid_ix) const {
+    // TODO assumes grid_ix is inside box.
+    uint64_t hi = static_cast<uint64_t>(grid_ix[0]);
+    uint64_t hj = static_cast<uint64_t>(grid_ix[1]);
+    uint64_t hk = static_cast<uint64_t>(grid_ix[2]);
+    uint64_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    return h;
+  }
+
+  Vec3Ix hash_to_local_grid(uint64_t hix) const {
+    uint64_t hi = (hix & 0xffff000000000000) >> 48;
+    uint64_t hj = (hix & 0x0000ffff00000000) >> 32;
+    uint64_t hk = (hix & 0x00000000ffff0000) >> 16;
+    Vec3Ix grid_ix(hi, hj, hk);
+    return grid_ix;
+  }
+
  public:
   const ca::scrollgrid::Box<Scalar, 3>& box() const { return box_; }
   grid_ix_t dim_i() const { return dimension_[0]; }
   grid_ix_t dim_j() const { return dimension_[1]; }
   grid_ix_t dim_k() const { return dimension_[2]; }
+  // this is the case because of the way origin is set at construction.
+  // TODO should we allow arbitrary origins?
   grid_ix_t first_i() const { return 0; }
   grid_ix_t first_j() const { return 0; }
   grid_ix_t first_k() const { return 0; }
@@ -258,8 +281,11 @@ public:
     // so if you voxel resolution is 1 cm, 327.68 m.
     Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
     Vec3 m3(m, m, m);
+    std::cerr << "m3 = " << m3.transpose() << std::endl;
     m3 += box_.center();
+    std::cerr << "m3pcenter = " << m3.transpose() << std::endl;
     min_world_corner_ijk_ = this->world_to_grid(m3);
+    std::cerr << "min_world_corner_ijk_ = " << min_world_corner_ijk_.transpose() << std::endl;
   }
 
 
