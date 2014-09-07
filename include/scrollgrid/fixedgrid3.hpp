@@ -281,11 +281,11 @@ public:
     // so if you voxel resolution is 1 cm, 327.68 m.
     Scalar m = -static_cast<Scalar>(std::numeric_limits<uint16_t>::max()/2)*resolution_;
     Vec3 m3(m, m, m);
-    std::cerr << "m3 = " << m3.transpose() << std::endl;
+    //std::cerr << "m3 = " << m3.transpose() << std::endl;
     m3 += box_.center();
-    std::cerr << "m3pcenter = " << m3.transpose() << std::endl;
+    //std::cerr << "m3pcenter = " << m3.transpose() << std::endl;
     min_world_corner_ijk_ = this->world_to_grid(m3);
-    std::cerr << "min_world_corner_ijk_ = " << min_world_corner_ijk_.transpose() << std::endl;
+    //std::cerr << "min_world_corner_ijk_ = " << min_world_corner_ijk_.transpose() << std::endl;
   }
 
 
