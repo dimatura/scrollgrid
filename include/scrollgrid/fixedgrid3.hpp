@@ -27,6 +27,7 @@ class FixedGrid3 {
 public:
   typedef Scalar ScalarType; // TODO what is my convention for this?
   typedef Eigen::Matrix<Scalar, 3, 1> Vec3;
+  typedef Eigen::Matrix<Scalar, 3, Eigen::Dynamic> Mat3;
 
   typedef boost::shared_ptr<FixedGrid3> Ptr;
   typedef boost::shared_ptr<const FixedGrid3> ConstPtr;
@@ -173,6 +174,17 @@ public:
     return this->grid_to_world(Vec3Ix(i, j, k));
   }
 
+  Mat3 multiple_grid_to_world(const Mat3Ix& grid_indices) {
+
+    Mat3 out( 3, grid_indices.cols() );
+    for (int ix=0; ix < grid_indices.cols(); ++ix) {
+      Vec3Ix gix(grid_indices.col(ix));
+      out.col(ix) = this->grid_to_world( gix );
+    }
+    return out;
+
+  }
+
   /**
    * given grid ijk coordinate, return linear memory index.
    */
@@ -182,6 +194,15 @@ public:
 
   mem_ix_t grid_to_mem(const Vec3Ix& grid_ix) const {
     return strides_.dot(grid_ix);
+  }
+
+  MemIxVector multiple_grid_to_mem(const Mat3Ix& grid_indices) {
+    MemIxVector out( grid_indices.cols() );
+    for (int ix=0; ix < grid_indices.cols(); ++ix) {
+      Vec3Ix gix(grid_indices.col(ix));
+      out[ix] = this->grid_to_mem( gix );
+    }
+    return out;
   }
 
   /**
@@ -208,45 +229,63 @@ public:
    * then because of scrolling there may be collisions, and mem_ix become
    * invalidated once the corresponding voxel scrolls out.
    */
-  uint64_t grid_to_hash(const Vec3Ix& grid_ix) const {
+  hash_ix_t grid_to_hash(const Vec3Ix& grid_ix) const {
     // grid2 should be all positive
     Vec3Ix grid2(grid_ix - min_world_corner_ijk_);
 
-    uint64_t hi = static_cast<uint64_t>(grid2[0]);
-    uint64_t hj = static_cast<uint64_t>(grid2[1]);
-    uint64_t hk = static_cast<uint64_t>(grid2[2]);
-    uint64_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    hash_ix_t hi = static_cast<hash_ix_t>(grid2[0]);
+    hash_ix_t hj = static_cast<hash_ix_t>(grid2[1]);
+    hash_ix_t hk = static_cast<hash_ix_t>(grid2[2]);
+    hash_ix_t h = (hi << 48) | (hj << 32) | (hk << 16);
     return h;
   }
 
-  Vec3Ix hash_to_grid(uint64_t hix) const {
-    uint64_t hi = (hix & 0xffff000000000000) >> 48;
-    uint64_t hj = (hix & 0x0000ffff00000000) >> 32;
-    uint64_t hk = (hix & 0x00000000ffff0000) >> 16;
+  Vec3Ix hash_to_grid(hash_ix_t hix) const {
+    hash_ix_t hi = (hix & 0xffff000000000000) >> 48;
+    hash_ix_t hj = (hix & 0x0000ffff00000000) >> 32;
+    hash_ix_t hk = (hix & 0x00000000ffff0000) >> 16;
     Vec3Ix grid_ix(hi, hj, hk);
     grid_ix += min_world_corner_ijk_;
     return grid_ix;
+  }
+
+  Mat3Ix multiple_hash_to_grid(const HashIxVector& hindices) const {
+    Mat3Ix out( 3, hindices.rows() );
+    for (size_t i=0; i < hindices.rows(); ++i) {
+      Vec3Ix gix = this->hash_to_grid(hindices[i]);
+      out.col(i) = gix;
+    }
+    return out;
   }
 
   /**
    * Like the above but does not offset by origin.
    * In the fixed case we assume the min ijk for origin is 0,0,0.
    */
-  uint64_t local_grid_to_hash(const Vec3Ix& grid_ix) const {
+  hash_ix_t local_grid_to_hash(const Vec3Ix& grid_ix) const {
     // TODO assumes grid_ix is inside box.
-    uint64_t hi = static_cast<uint64_t>(grid_ix[0]);
-    uint64_t hj = static_cast<uint64_t>(grid_ix[1]);
-    uint64_t hk = static_cast<uint64_t>(grid_ix[2]);
-    uint64_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    hash_ix_t hi = static_cast<hash_ix_t>(grid_ix[0]);
+    hash_ix_t hj = static_cast<hash_ix_t>(grid_ix[1]);
+    hash_ix_t hk = static_cast<hash_ix_t>(grid_ix[2]);
+    hash_ix_t h = (hi << 48) | (hj << 32) | (hk << 16);
     return h;
   }
 
-  Vec3Ix hash_to_local_grid(uint64_t hix) const {
-    uint64_t hi = (hix & 0xffff000000000000) >> 48;
-    uint64_t hj = (hix & 0x0000ffff00000000) >> 32;
-    uint64_t hk = (hix & 0x00000000ffff0000) >> 16;
+  Vec3Ix hash_to_local_grid(hash_ix_t hix) const {
+    hash_ix_t hi = (hix & 0xffff000000000000) >> 48;
+    hash_ix_t hj = (hix & 0x0000ffff00000000) >> 32;
+    hash_ix_t hk = (hix & 0x00000000ffff0000) >> 16;
     Vec3Ix grid_ix(hi, hj, hk);
     return grid_ix;
+  }
+
+  Mat3Ix multiple_local_hash_to_grid(const HashIxVector& hindices) const {
+    Mat3Ix out( 3, hindices.rows() );
+    for (size_t i=0; i < hindices.rows(); ++i) {
+      Vec3Ix gix = this->local_hash_to_grid(hindices[i]);
+      out.col(i) = gix;
+    }
+    return out;
   }
 
  public:
