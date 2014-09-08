@@ -73,7 +73,7 @@ public:
     hash_map_.resize(expected_size);
   }
 
-  size_t size() { return hash_map_.size(); }
+  size_t size() const { return hash_map_.size(); }
 
   void clear_no_resize() {
     // does not recover memory for hashtable buckets, only items
