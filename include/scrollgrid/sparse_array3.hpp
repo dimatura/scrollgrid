@@ -64,7 +64,12 @@ public:
 
 public:
 
+  void reset() {
+    hash_map_.clear();
+  }
+
   void reset(size_t expected_size) {
+    hash_map_.clear();
     hash_map_.resize(expected_size);
   }
 
