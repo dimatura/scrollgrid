@@ -1,7 +1,7 @@
 #ifndef RAY_HPP_TVFS3AKQ
 #define RAY_HPP_TVFS3AKQ
 
-#include <tuple>
+#include <boost/tuple/tuple.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>

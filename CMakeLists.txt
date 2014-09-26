@@ -28,6 +28,8 @@ catkin_package(
     LIBRARIES 
 )
 
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 #if (CATKIN_ENABLE_TESTING)
 catkin_add_gtest(${PROJECT_NAME}_scrollgrid3_tests tests/scrollgrid3.cpp)
 target_link_libraries(${PROJECT_NAME}_scrollgrid3_tests ${catkin_LIBRARIES})
