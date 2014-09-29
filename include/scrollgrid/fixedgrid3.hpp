@@ -126,6 +126,18 @@ public:
     return box_.contains(pt);
   }
 
+  /**
+   */
+  Eigen::VectorXi multiple_is_inside_box(const Eigen::Matrix<Scalar, 3, Eigen::Dynamic>& pts) {
+    Eigen::VectorXi out(pts.cols());
+    for (int i=0; i < pts.cols(); ++i) {
+      const Eigen::Matrix<Scalar, 3, 1>& pt(pts.col(i));
+      int inside = box_.contains(pt);
+      out[i] = inside;
+    }
+    return out;
+  }
+
   bool is_inside_box(Scalar x, Scalar y, Scalar z) const {
     return box_.contains(Vec3(x, y, z));
   }
