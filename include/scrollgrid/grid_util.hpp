@@ -1,3 +1,14 @@
+/**
+ * @author  Daniel Maturana
+ * @year    2015
+ *
+ * @attention Copyright (c) 2015
+ * @attention Carnegie Mellon University
+ * @attention All rights reserved.
+ *
+ **@=*/
+
+
 #ifndef GRID_UTIL_HPP_L137PMBO
 #define GRID_UTIL_HPP_L137PMBO
 

@@ -1,3 +1,14 @@
+/**
+ * @author  Daniel Maturana
+ * @year    2015
+ *
+ * @attention Copyright (c) 2015
+ * @attention Carnegie Mellon University
+ * @attention All rights reserved.
+ *
+ **@=*/
+
+
 #ifndef FIXEDGRID3_HPP_6KPVVRZF
 #define FIXEDGRID3_HPP_6KPVVRZF
 

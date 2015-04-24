@@ -1,3 +1,14 @@
+/**
+ * @author  Daniel Maturana
+ * @year    2015
+ *
+ * @attention Copyright (c) 2015
+ * @attention Carnegie Mellon University
+ * @attention All rights reserved.
+ *
+ **@=*/
+
+
 #ifndef GRID_TYPES_HPP_HJ46RUAT
 #define GRID_TYPES_HPP_HJ46RUAT
 

@@ -1,3 +1,14 @@
+/**
+ * @author  Daniel Maturana
+ * @year    2015
+ *
+ * @attention Copyright (c) 2015
+ * @attention Carnegie Mellon University
+ * @attention All rights reserved.
+ *
+ **@=*/
+
+
 #ifndef ALGO_UTIL_HPP_ZB5UF8WS
 #define ALGO_UTIL_HPP_ZB5UF8WS
 

@@ -1,3 +1,14 @@
+/**
+ * @author  Daniel Maturana
+ * @year    2015
+ *
+ * @attention Copyright (c) 2015
+ * @attention Carnegie Mellon University
+ * @attention All rights reserved.
+ *
+ **@=*/
+
+
 #ifndef SCROLLGRID3_HPP_I9SAOOSJ
 #define SCROLLGRID3_HPP_I9SAOOSJ
 
