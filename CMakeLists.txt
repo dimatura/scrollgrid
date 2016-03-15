@@ -22,7 +22,7 @@ include_directories(${Eigen_INCLUDE_DIRS})
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 # TODO: fill in what other packages will need to use this package
 catkin_package(
-    DEPENDS eigen
+    DEPENDS Eigen
     CATKIN_DEPENDS roscpp pcl_util geom_cast
     INCLUDE_DIRS include
     LIBRARIES 
@@ -38,4 +38,3 @@ target_link_libraries(${PROJECT_NAME}_scrollgrid3_tests ${catkin_LIBRARIES})
 include_directories(include)
 add_executable(${PROJECT_NAME}_examples src/examples.cpp)
 target_link_libraries(${PROJECT_NAME}_examples ${catkin_LIBRARIES})
-
