@@ -8,8 +8,6 @@
  *
  **@=*/
 
-
-
 #include <iostream>
 
 #include <boost/foreach.hpp>
