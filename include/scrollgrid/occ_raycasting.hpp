@@ -136,8 +136,8 @@ void occupancy_trace(const Vec3Ix& start_pos,
 template<class GridScalar>
 void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
                             const Vec3Ix& end_pos, // in ijk
-                            const ca::ScrollGrid3<GridScalar>& grid3,
-                            ca::DenseArray3<uint8_t>& array3)
+                            const ScrollGrid3<GridScalar>& grid3,
+                            DenseArray3<uint8_t>& array3)
                             {
   //int ray_ctr = 0;
   // beware: vec3ix are int64_t

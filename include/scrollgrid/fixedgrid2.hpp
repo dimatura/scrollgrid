@@ -56,14 +56,22 @@ public:
   FixedGrid2(const Vec2& center,
              const Vec2Ix& dimension,
              Scalar resolution) :
-      box_(center-(dimension.cast<Scalar>()*resolution)/2,
-           center+(dimension.cast<Scalar>()*resolution)/2),
+      box_(),
       origin_(center-box_.radius()),
       dimension_(dimension),
       num_cells_(dimension.prod()),
       strides_(dimension[1], 1),
       resolution_(resolution)
-  { }
+  {
+    Vec2 min_pt = center-(dimension.cast<Scalar>()*resolution)/2;
+    Vec2 max_pt = center+(dimension.cast<Scalar>()*resolution)/2;
+    Vec2 radius = (max_pt-min_pt)/2;
+
+    box_.set_center(center);
+    box_.set_radius(radius);
+    box_.set_max_pt(max_pt);
+    box_.set_min_pt(min_pt);
+  }
 
   FixedGrid2(const FixedGrid2& other) :
       box_(other.box_),

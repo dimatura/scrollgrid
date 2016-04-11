@@ -253,9 +253,9 @@ private:
   // does this object own the grid_ mem
   bool owns_memory_;
 
-private:
-  DenseArray3(const DenseArray3& other);
-  DenseArray3& operator=(const DenseArray3& other);
+//private:
+ // DenseArray3(const DenseArray3& other);
+ // DenseArray3& operator=(const DenseArray3& other);
 };
 
 } /* ca */

@@ -86,13 +86,13 @@ class Box {
 
   void set_min_pt(const Vec& min_pt) {
     bounds_.first = min_pt;
-    ROS_ASSERT( check_bounds());
+    //ROS_ASSERT( check_bounds());
     this->reset_center_radius();
   }
 
   void set_max_pt(const Vec& max_pt) {
     bounds_.second = max_pt;
-    ROS_ASSERT( check_bounds());
+    //ROS_ASSERT( check_bounds());
     this->reset_center_radius();
   }
 

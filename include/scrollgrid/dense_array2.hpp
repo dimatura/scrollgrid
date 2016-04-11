@@ -66,7 +66,8 @@ public:
       strides_(0, 0),
       grid_(NULL),
       begin_(NULL),
-      end_(NULL)
+      end_(NULL),
+      own_memory_(false)
   { }
 
   DenseArray2(const Vec2Ix& dimension) :
@@ -75,11 +76,12 @@ public:
       strides_(dimension[1], 1),
       grid_(new CellT[num_cells_]),
       begin_(&grid_[0]),
-      end_(&grid_[0]+num_cells_)
+      end_(&grid_[0]+num_cells_),
+      own_memory_(true)
   { }
 
   virtual ~DenseArray2() {
-    if (grid_) { delete[] grid_; }
+    if (grid_ && own_memory_) { delete[] grid_; }
   }
 
   void reset(const ca::Vec2Ix& dimension) {
@@ -92,6 +94,20 @@ public:
     end_ = &grid_[0]+num_cells_;
   }
 
+  void reset(const Vec2Ix& dimension, ArrayType grid_data) {
+    if (grid_ != NULL)
+    {
+        delete[] grid_;
+    }
+    dimension_ = dimension;
+    num_cells_ = dimension.prod();
+    // TODO configurable
+    strides_ = ca::Vec2Ix(dimension[1], 1);
+    grid_ = grid_data;
+    begin_ = &(grid_[0]);
+    end_ = &(grid_[0])+num_cells_;
+    own_memory_ = false;
+  }
 public:
 
   /**
@@ -160,6 +176,7 @@ private:
   DenseArray2& operator=(const DenseArray2& other);
 
 private:
+  bool own_memory_;
   // number of grid cells along each axis
   Vec2Ix dimension_;
 
