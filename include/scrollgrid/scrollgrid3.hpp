@@ -31,8 +31,11 @@
 namespace ca
 {
 
-// TODO this could also be achieved with templates.
-
+/**
+ * These are empty functors defining the interface for callbacks
+ * to clear cells and fix edges.
+ * TODO this could also be achieved with templates.
+ */
 struct ClearCellsFun {
   virtual void operator()(const Vec3Ix& start,
                           const Vec3Ix& finish) const { }
@@ -211,6 +214,7 @@ public:
   /**
    * scroll grid.
    * updates bounding box and offset_cells.
+   * *does not* take care of fixing whatever comes in our out of grid.
    * @param offset_cells. how much to scroll. offset_cells is a signed integral.
    *
    */
@@ -223,18 +227,31 @@ public:
     this->update_wrap_ijk();
   }
 
+  /**
+   * functionally same as just_scroll.
+   * special case of scroll_and_clear_and_fix.
+   */
   void scroll(const Vec3Ix& offset_cells) {
     ClearCellsFun nullclear;
     FixEdgesFun nullfix;
     this->scroll_and_clear_and_fix(offset_cells, nullclear, nullfix);
   }
 
+  /**
+   * scroll grid by offset_cells and call clear_cells_fun on outgoing/incoming
+   * cells.
+   * special case of scroll_and_clear_and_fix.
+   */
   void scroll_and_clear(const Vec3Ix& offset_cells,
                         const ClearCellsFun& clear_cells_fun) {
     FixEdgesFun nullfix;
     this->scroll_and_clear_and_fix(offset_cells, clear_cells_fun, nullfix);
   }
 
+  /**
+   * scroll grid by offset_cells, call fix_edges_fun on outgoing/incoming
+   * edges, and clear_cells_fun on outgoing/incoming cells.
+   */
   void scroll_and_clear_and_fix(const Vec3Ix& offset_cells,
                                 const ClearCellsFun& clear_cells_fun,
                                 const FixEdgesFun& fix_edges_fun) {
@@ -316,8 +333,8 @@ public:
    * same for j and k
    * Note that boxes may overlap.
    *
-   * Note: this may be deprecated in favor of the clearfun callbacks
-   * in scroll.
+   * Note: this is deprecated in favor of the clearfun callbacks
+   * in scroll_and_clear_and_fix.
    */
   void get_clear_boxes(const Vec3Ix& offset_cells,
                        Vec3Ix& clear_i_min, Vec3Ix& clear_i_max,
