@@ -306,19 +306,18 @@ void bresenham_trace(const Vec2Ix& start_pos,
     int y = (int)y1;
 
     const int maxX = (int)x2;
-    bool cont_casting=true;
-    for(int x=(int)x1; x<maxX; x++)
+    bool end_cell=false;
+
+    for(int x=(int)x1; x <= maxX; x++)
     {
       if(steep)
       {
-          fun(y,x,cont_casting);
-          if(!cont_casting)
+          if(!fun(y,x,end_cell))
               return;
       }
       else
       {
-          fun(x,y,cont_casting);
-          if(!cont_casting)
+          if(!fun(x,y,end_cell))
               return;
       }
 

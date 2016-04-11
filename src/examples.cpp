@@ -39,8 +39,8 @@ public:
   virtual void operator()(const ca::Vec3Ix& start,
                           const ca::Vec3Ix& finish) const {
     if ((finish - start).prod() > 0) {
-      ROS_ASSERT(grid3.is_inside_grid(start));
-      ROS_ASSERT(grid3.is_inside_grid(finish-Vec3Ix(1,1,1)));
+      ROS_ASSERT(grid_->is_inside_grid(start));
+      ROS_ASSERT(grid_->is_inside_grid(finish-ca::Vec3Ix(1,1,1)));
       for (ca::grid_ix_t i = start[0]; i < finish[0]; ++i) {
         for (ca::grid_ix_t j = start[1]; j < finish[1]; ++j) {
           for (ca::grid_ix_t k = start[2]; k < finish[2]; ++k) {
