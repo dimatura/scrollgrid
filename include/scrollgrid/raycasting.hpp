@@ -275,58 +275,66 @@ void bresenham_trace_simple(const Vec3Ix& start_pos,
   }
 }
 
+
 template<class TraceFunctor>
 void bresenham_trace(const Vec2Ix& start_pos,
                      const Vec2Ix& end_pos,
                      const TraceFunctor& fun) {
-    int x1 = start_pos[0],
-    y1 = start_pos[1],
-    x2 = end_pos[0],
-    y2 = end_pos[1];
+    int x = start_pos[0],
+      y = start_pos[1];
 
-    // Bresenham's line algorithm
-    const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
-    if(steep)
-    {
-      std::swap(x1, y1);
-      std::swap(x2, y2);
+    int dx = end_pos[0] - start_pos[0],
+      dy = end_pos[1] - start_pos[1];
+    int sx, sy;
+    //X
+    if ( dx>0 ) {
+    sx = 1;
+    } else if ( dx<0 ) {
+    sx = -1;
+    dx = -dx;
+    } else {
+    sx = 0;
     }
 
-    if(x1 > x2)
-    {
-      std::swap(x1, x2);
-      std::swap(y1, y2);
+    //Y
+    if ( dy>0 ) {
+    sy = 1;
+    } else if ( dy<0 ) {
+    sy = -1;
+    dy = -dy;
+    } else {
+    sy = 0;
     }
 
-    const float dx = x2 - x1;
-    const float dy = fabs(y2 - y1);
+    int ax = 2*dx,
+      ay = 2*dy;
 
-    float error = dx / 2.0f;
-    const int ystep = (y1 < y2) ? 1 : -1;
-    int y = (int)y1;
+    if (dy <= dx){
+        for (int decy=ay-dx;;
+             x+=sx, decy+=ay) {
+          bool end_cell = false;
+          //Bresenham step
+          if(!fun(x,y,end_cell)) break;
 
-    const int maxX = (int)x2;
-    bool end_cell=false;
+          if ( x==end_pos[0] ) break;
+          if ( decy>=0 ) {
+            decy-=ax;
+            y+=sy;
+          }
+        }
+    } else if ( dx <= dy ){
+        for (int decx=ax-dy;;
+             y+=sy,decx+=ax) {
+          bool end_cell = false;
+          //Bresenham step
+          if(!fun(x,y,end_cell)) break;
 
-    for(int x=(int)x1; x <= maxX; x++)
-    {
-      if(steep)
-      {
-          if(!fun(y,x,end_cell))
-              return;
-      }
-      else
-      {
-          if(!fun(x,y,end_cell))
-              return;
-      }
-
-      error -= dy;
-      if(error < 0)
-      {
-          y += ystep;
-          error += dx;
-      }
+          if ( y==end_pos[1] ) break;
+          if ( decx>=0 ) {
+            decx-=ay;
+            x+=sx;
+          }
+        }
     }
 }
 
