@@ -115,7 +115,7 @@ void bresenham_trace(const Vec3Ix& start_pos,
          ;
          x+=sx, decy+=ay, decz+=az) {
       //SetP ( grid,x,y,z,end_pos, atMax, count);
-      fun(x, y, z);
+      if(!fun(x, y, z)) break;
       //Bresenham step
       if ( x==end_pos[0] ) break;
       if ( decy>=0 ) {
@@ -133,7 +133,7 @@ void bresenham_trace(const Vec3Ix& start_pos,
          ;
          y+=sy,decx+=ax,decz+=az ) {
       // SetP ( grid,x,y,z,end_pos, atMax, count);
-      fun(x, y, z);
+      if(!fun(x, y, z)) break;
       //Bresenham step
       if ( y==end_pos[1] ) break;
       if ( decx>=0 ) {
@@ -151,7 +151,7 @@ void bresenham_trace(const Vec3Ix& start_pos,
          ;
          z+=sz,decx+=ax,decy+=ay ) {
       //SetP ( grid,x,y,z,end_pos, atMax, count);
-      fun(x, y, z);
+      if(!fun(x, y, z))  break;
       //Bresenham step
       if ( z==end_pos[2] ) break;
       if ( decx>=0 ) {
@@ -314,7 +314,7 @@ void bresenham_trace(const Vec2Ix& start_pos,
              x+=sx, decy+=ay) {
           bool end_cell = false;
           //Bresenham step
-          if(!fun(x,y,end_cell)) break;
+          if(!fun(x,y,end_cell)){ ROS_INFO("Breaking due to function call"); break;}
 
           if ( x==end_pos[0] ) break;
           if ( decy>=0 ) {
@@ -327,7 +327,7 @@ void bresenham_trace(const Vec2Ix& start_pos,
              y+=sy,decx+=ax) {
           bool end_cell = false;
           //Bresenham step
-          if(!fun(x,y,end_cell)) break;
+          if(!fun(x,y,end_cell)){ break; ROS_INFO("Breaking due to function call"); break;}
 
           if ( y==end_pos[1] ) break;
           if ( decx>=0 ) {
