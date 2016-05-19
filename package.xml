@@ -6,9 +6,9 @@
   </description>
   <maintainer email="dimatura@cmu.edu">Daniel Maturana</maintainer>
 
-  <license>TODO</license>
+  <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/scrollgrid</url>
+  <!--<url type="website">http://ros.org/wiki/scrollgrid</url>-->
   <!-- <url type="bugtracker"></url> -->
 
   <author email="dimatura@cmu.edu">Daniel Maturana</author>
