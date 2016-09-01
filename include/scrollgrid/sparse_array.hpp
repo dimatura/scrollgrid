@@ -32,12 +32,12 @@ struct TrivialHash {
 };
 
 template <class CellT>
-class SparseArray3 {
+class SparseArray {
 public:
   typedef CellT CellType;
 
-  typedef boost::shared_ptr<SparseArray3> Ptr;
-  typedef boost::shared_ptr<const SparseArray3> ConstPtr;
+  typedef boost::shared_ptr<SparseArray> Ptr;
+  typedef boost::shared_ptr<const SparseArray> ConstPtr;
 
   typedef typename boost::unordered_map<uint64_t, CellType, TrivialHash> MapType;
   //typedef typename boost::container::flat_map<uint64_t, CellType> MapType;
@@ -46,13 +46,13 @@ public:
   typedef typename MapType::const_iterator const_iterator;
 
 public:
-  SparseArray3() { }
+  SparseArray() { }
 
-  SparseArray3(const SparseArray3& other) = delete;
+  SparseArray(const SparseArray& other) = delete;
 
-  SparseArray3& operator=(const SparseArray3& other) = delete;
+  SparseArray& operator=(const SparseArray& other) = delete;
 
-  virtual ~SparseArray3() { }
+  virtual ~SparseArray() { }
 
 public:
 

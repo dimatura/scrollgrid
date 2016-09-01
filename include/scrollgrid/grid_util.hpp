@@ -17,7 +17,7 @@
 #include "scrollgrid/dense_array2.hpp"
 #include "scrollgrid/dense_array3.hpp"
 
-#include "scrollgrid/sparse_array3.hpp"
+#include "scrollgrid/sparse_array.hpp"
 
 namespace ca
 {
@@ -81,14 +81,14 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
 
 template<class Scalar, class CellType>
 void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
-                 ca::SparseArray3<mem_ix_t>& occ_vox,
+                 ca::SparseArray<mem_ix_t>& occ_vox,
                  ca::DenseArray3<CellType>& array,
                  Vec3Ix clear_i_min, Vec3Ix clear_i_max,
                  Vec3Ix clear_j_min, Vec3Ix clear_j_max,
                  Vec3Ix clear_k_min, Vec3Ix clear_k_max) {
 
   if (  (clear_i_max - clear_i_min).prod() > 0 ) {
-    for (SparseArray3<mem_ix_t>::iterator itr = occ_vox.begin();
+    for (SparseArray<mem_ix_t>::iterator itr = occ_vox.begin();
         itr != occ_vox.end();
         ++itr) {
       const uint64_t& hix(itr->first);
@@ -102,7 +102,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
   }
 
   if (  (clear_j_max - clear_j_min).prod() > 0 ) {
-    for (SparseArray3<mem_ix_t>::iterator itr = occ_vox.begin();
+    for (SparseArray<mem_ix_t>::iterator itr = occ_vox.begin();
          itr != occ_vox.end();
          ++itr) {
       const uint64_t& hix(itr->first);
@@ -116,7 +116,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
   }
 
   if (  (clear_k_max - clear_k_min).prod() > 0 ) {
-    for (SparseArray3<mem_ix_t>::iterator itr = occ_vox.begin();
+    for (SparseArray<mem_ix_t>::iterator itr = occ_vox.begin();
          itr != occ_vox.end();
          ++itr) {
       const uint64_t& hix(itr->first);

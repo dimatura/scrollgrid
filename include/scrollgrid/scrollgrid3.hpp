@@ -487,7 +487,7 @@ public:
    * if we use linear mem_ix as a hash,
    * then because of scrolling there may be collisions, and mem_ix become
    * invalidated once the corresponding voxel scrolls out.
-   * TODO should we do this in the sparse_array3 module?
+   * TODO should we do this in the sparse_array module?
    */
   uint64_t grid_to_hash(const Vec3Ix& grid_ix) const {
     // grid2 should be all positive

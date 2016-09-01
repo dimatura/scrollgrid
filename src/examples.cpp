@@ -14,7 +14,6 @@
 #include "scrollgrid/dense_array2.hpp"
 #include "scrollgrid/dense_array3.hpp"
 
-#include "scrollgrid/sparse_array3.hpp"
 #include "scrollgrid/grid_util.hpp"
 
 #include "scrollgrid/scrolling_strategies.hpp"
