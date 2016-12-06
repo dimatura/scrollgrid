@@ -84,7 +84,7 @@ public:
 
   void reset(const Vec2Ix& dimension, ArrayType grid_data) {
     if (grid_ != nullptr) {
-        delete[] grid_;
+      delete[] grid_;
     }
     dimension_ = dimension;
     num_cells_ = dimension.prod();
@@ -157,6 +157,9 @@ public:
   grid_ix_t dim_j() const { return dimension_[1]; }
   Vec2Ix dimension() const { return dimension_; }
   grid_ix_t num_cells() const { return num_cells_; }
+  ArrayType data() const { return &grid_[0]; }
+  grid_ix_t stride(int i) { return strides_[i]; }
+  Vec2Ix strides() const { return strides_; }
 
 private:
   DenseArray2(const DenseArray2& other);
@@ -177,6 +180,10 @@ private:
   ArrayType grid_;
   iterator begin_, end_;
 };
+
+typedef DenseArray2<float> DenseArray2f;
+typedef DenseArray2<double> DenseArray2d;
+typedef DenseArray2<uint8_t> DenseArray2u;
 
 } /* ca */
 

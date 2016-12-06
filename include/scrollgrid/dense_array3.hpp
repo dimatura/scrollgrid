@@ -233,6 +233,9 @@ public:
   grid_ix_t dim_k() const { return dimension_[2]; }
   Vec3Ix dimension() const { return dimension_; }
   grid_ix_t num_cells() const { return num_cells_; }
+  ArrayType data() const { return &grid_[0]; }
+  grid_ix_t stride(int i) { return strides_[i]; }
+  Vec2Ix strides() const { return strides_; }
 
 private:
   // number of grid cells along each axis
@@ -255,6 +258,10 @@ private:
  // DenseArray3(const DenseArray3& other);
  // DenseArray3& operator=(const DenseArray3& other);
 };
+
+typedef DenseArray3<float> DenseArray3f;
+typedef DenseArray3<double> DenseArray3d;
+typedef DenseArray3<uint8_t> DenseArray3u;
 
 } /* ca */
 
