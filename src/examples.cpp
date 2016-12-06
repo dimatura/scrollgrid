@@ -5,8 +5,10 @@
  *
  */
 
+#if 0
 #include "scrollgrid/fixedgrid2.hpp"
 #include "scrollgrid/fixedgrid3.hpp"
+#endif
 
 #include "scrollgrid/scrollgrid2.hpp"
 #include "scrollgrid/scrollgrid3.hpp"
@@ -22,6 +24,7 @@
 
 #include "scrollgrid/fixedoccmap2.hpp"
 #include "scrollgrid/fixedoccmap3.hpp"
+#include "scrollgrid/fixedgrid.hpp"
 
 /**
  * I think I defined one already somewhere but forgot where

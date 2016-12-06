@@ -28,10 +28,9 @@ typedef Eigen::Matrix<grid_ix_t, 2, 1> Vec2Ix;
 typedef Eigen::Matrix<grid_ix_t, 3, 1> Vec3Ix;
 typedef Eigen::Matrix<grid_ix_t, 4, 1> Vec4Ix;
 
-// note that we are using an eigen-friendly representation
-typedef Eigen::Matrix<grid_ix_t, 2, Eigen::Dynamic> Mat2Ix;
-typedef Eigen::Matrix<grid_ix_t, 3, Eigen::Dynamic> Mat3Ix;
-typedef Eigen::Matrix<grid_ix_t, 4, Eigen::Dynamic> Mat4Ix;
+typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 2, Eigen::RowMajor> Mat2Ix;
+typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 3, Eigen::RowMajor> Mat3Ix;
+typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 4, Eigen::RowMajor> Mat4Ix;
 
 } /* ca */
 
