@@ -19,6 +19,44 @@ namespace scrollgrid
 {
 
 template<typename Scalar>
+class Ray2 {
+ public:
+  typedef Eigen::Matrix<Scalar, 3, 1> Vec2;
+
+ public:
+  /**
+   * @param origin: origin of ray
+   * @param direction: *unit* direction of ray
+   *
+   * if you want to use origin/endpoint
+   * Ray3(origin, (endpoint-origin).normalized());
+   */
+  Ray2(const Vec2& origin,
+       const Vec2& direction) :
+         origin(origin),
+         direction(direction),
+         tmin(Scalar(0)),
+         tmax(std::numeric_limits<Scalar>::max()),
+         invdir(Scalar(1.) / direction.array()),
+         sign(invdir.x() < 0,
+              invdir.y() < 0)
+  {
+  }
+
+ public:
+  Vec2 point_at(Scalar t) const {
+    return origin + t*direction;
+  }
+
+ public:
+  Vec2 origin, direction;
+  Scalar tmin, tmax; /// ray min and max distances
+  Vec2 invdir; // for convenience in AABB intersection
+  std::tuple<int, int> sign;
+
+};
+
+template<typename Scalar>
 class Ray3 {
  public:
   typedef Eigen::Matrix<Scalar, 3, 1> Vec3;

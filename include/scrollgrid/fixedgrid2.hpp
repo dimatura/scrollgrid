@@ -191,11 +191,12 @@ public:
   Vec2 max_pt() const { return box_.max_pt(); }
   const Vec2& center() const { return box_.center(); }
   Scalar resolution() const { return resolution_; }
+  ca::scrollgrid::Box<Scalar, 2> box() const { return box_; }
 
   grid_ix_t num_cells() const { return num_cells_; }
 
  private:
-  // 3d box enclosing grid. In whatever coordinates were given (probably
+  // 2d box enclosing grid. In whatever coordinates were given (probably
   // world_view)
   ca::scrollgrid::Box<Scalar, 2> box_;
 
@@ -215,6 +216,8 @@ public:
   // size of grid cells
   Scalar resolution_;
 };
+
+typedef FixedGrid2<float> FixedGrid2f;
 
 }
 

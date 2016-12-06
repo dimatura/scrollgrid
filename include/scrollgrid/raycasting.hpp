@@ -51,6 +51,31 @@ bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
   return true;
 }
 
+/**
+ * Axis-aligned bounding box intersection test.
+ * Reference:
+ * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
+ * tmin and tmax are updated in place
+ */
+template<typename Scalar>
+bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 2>& box,
+                        ca::scrollgrid::Ray2<Scalar> &r) {
+  Scalar tmin = (box.bound(   std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
+  Scalar tmax = (box.bound( 1-std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
+
+  Scalar tymin = (box.bound(  std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
+  Scalar tymax = (box.bound(1-std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
+
+  if ((tmin > tymax) || (tymin > tmax)) { return false; }
+  if (tymin > tmin) { tmin = tymin; }
+  if (tymax < tmax) { tmax = tymax; }
+
+  if (tmin > r.tmin) { r.tmin = tmin; }
+  if (tmax < r.tmax) { r.tmax = tmax; }
+  return true;
+}
+
+
 class Bresenham2Iterator {
 public:
   Bresenham2Iterator(const Vec2Ix& start_pos,

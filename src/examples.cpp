@@ -21,6 +21,7 @@
 #include "scrollgrid/raycasting.hpp"
 #include "scrollgrid/occ_raycasting.hpp"
 
+#include "scrollgrid/fixedoccmap2.h"
 #include "scrollgrid/fixedoccmap3.h"
 
 /**
