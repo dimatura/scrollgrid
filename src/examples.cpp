@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
   // manipulate the array directly.
   // if you go out of bounds, it will crash.
   occ_array3.get(100, 100, 100) = 255;
-  std::cout << int(occ_array3.get(100, 100, 100)) << "\n";
+  std::cout << "occarray3(100, 100, 100) " << int(occ_array3.get(100, 100, 100)) << "\n";
 
   // linear memory address also works, but does not know anything
   // about location in space (hence 'local')
   ca::mem_ix_t mix = occ_array3.local_grid_to_mem(100, 100, 100);
-  std::cout << int(occ_array3[mix]) << "\n";
+  std::cout << "occarray3[" << mix << "] " << int(occ_array3[mix]) << "\n";
 
   // use bresenham to draw a line. again, directly in voxel space
   ca::bresenham_trace3_increment(ca::Vec3Ix(20, 40, 10),
@@ -91,6 +91,27 @@ int main(int argc, char *argv[]) {
 
   // now get an xyz point
   Eigen::Vector3f pt(10., 20., 30.);
+
+  ca::Bresenham3Iterator b3itr(ca::Vec3Ix(20, 40, 10),
+                               ca::Vec3Ix(180, 170, 190));
+  while (!b3itr.done()) {
+    b3itr.step();
+    bool hit = b3itr.done();
+    ca::mem_ix_t mix = grid3.grid_to_mem(b3itr.pos());
+    if (hit) {
+      occ_array3[mix] = occ_array3[mix] + 1;
+    } else {
+      occ_array3[mix] = occ_array3[mix] - 1;
+    }
+  }
+
+  for (ca::Bresenham3Iterator b3itr(ca::Vec3Ix(20, 40, 10),
+                                    ca::Vec3Ix(180, 170, 190));
+      !b3itr.done();
+      b3itr.step()) {
+    bool hit = b3itr.done();
+    ca::mem_ix_t mix = grid3.grid_to_mem(b3itr.pos());
+  }
 
   // verify it is inside the volume
   if (grid3.is_inside_box(pt)) {
@@ -114,7 +135,7 @@ int main(int argc, char *argv[]) {
   // get memory coordinates. this is actually wrapped around
   // in space. world_to_grid -> grid_to_mem would also work.
   ca::mem_ix_t mix2 = grid3.world_to_mem(pt);
-  std::cout << mix2 << "\n";
+  std::cout << "mix2: " << mix2 << "\n";
   occ_array3[mix2] = 128;
 
   ClearFunctor clear_fn(&grid3, &occ_array3);
@@ -125,10 +146,10 @@ int main(int argc, char *argv[]) {
 
   // ijk never changes with scroll; mem_ix might or might not
   ca::Vec3Ix ix2 = grid3.world_to_grid(pt);
-  std::cout << ix2.transpose() << "\n";
+  std::cout << "ix2.T " << ix2.transpose() << "\n";
 
   // should retain same value
-  std::cout << int(occ_array3[grid3.world_to_mem(pt)]) << "\n";
+  std::cout << "occ_array3[grid3.world_to_mem(pt)]: " << int(occ_array3[grid3.world_to_mem(pt)]) << "\n";
 
 
   return 0;

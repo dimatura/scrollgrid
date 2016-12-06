@@ -141,15 +141,15 @@ public:
     }
   }
 
-  int x() const {
+  int i() const {
     return _x;
   }
 
-  int y() const {
+  int j() const {
     return _y;
   }
 
-  Vec2Ix xy() const {
+  Vec2Ix pos() const {
     return Vec2Ix(_x, _y);
   }
 
@@ -162,7 +162,8 @@ public:
   Bresenham2Iterator& operator=(const Bresenham2Iterator& other) = delete;
 
 private:
-  int _x0, _y0, _x1, _y1;
+  int _x0, _y0;
+  int _x1, _y1;
   int _x, _y;
   int _sx, _sy;
   int _ax, _ay;
@@ -171,11 +172,151 @@ private:
   bool _done;
 };
 
+class Bresenham3Iterator {
+public:
+  Bresenham3Iterator(const Vec3Ix& start_pos,
+                     const Vec3Ix& end_pos) :
+      _x0(start_pos.x()),
+      _y0(start_pos.y()),
+      _z0(start_pos.z()),
+      _x1(end_pos.x()),
+      _y1(end_pos.y()),
+      _z1(end_pos.z())
+  {
+    this->init();
+  }
+
+  void init() {
+    _x = _x0;
+    _y = _y0;
+    _z = _z0;
+    _dx = _x1 - _x0,
+    _dy = _y1 - _y0,
+    _dz = _z1 - _z0;
+
+    //_x
+    if (_dx > 0) {
+      _sx = 1;
+    } else if (_dx < 0) {
+      _sx = -1;
+      _dx = -_dx;
+    } else {
+      _sx = 0;
+    }
+
+    //_y
+    if (_dy > 0) {
+      _sy = 1;
+    } else if (_dy < 0) {
+      _sy = -1;
+      _dy = -_dy;
+    } else {
+      _sy = 0;
+    }
+
+    //_z
+    if (_dz > 0) {
+      _sz = 1;
+    } else if (_dz < 0) {
+      _sz = -1;
+      _dz = -_dz;
+    } else {
+      _sz = 0;
+    }
+
+    _ax = 2*_dx;
+    _ay = 2*_dy;
+    _az = 2*_dz;
+
+    if ((_dy <= _dx) && (_dz <= _dx)) {
+      _decy = _ay-_dx;
+      _decz = _az-_dx;
+    } else if ((_dx <= _dy) && (_dz <= _dy)) {
+      _decx = _ax-_dy;
+      _decz = _az-_dy;
+    } else if ((_dx <= _dz) && (_dy <= _dz)) {
+      _decx = _ax-_dz;
+      _decy = _ay-_dz;
+    }
+  }
+
+  void step() {
+    if ((_dy <= _dx) && (_dz <= _dx)) {
+      if (_x == _x0) {
+        _done = true;
+      } else {
+        // pass
+      }
+
+      if (_decy >= 0) {
+        _decy -= _ax;
+        _y += _sy;
+      }
+      if (_decz >= 0) {
+        _decz -= _ax;
+        _z += _sz;
+      }
+
+      _x += _sx; _decy += _ay; _decz += _az;
+    } else if ((_dx <= _dy) && (_dz <= _dy)) {
+      if (_y == _y1) {
+        _done = true;
+        return;
+      }
+      if (_decx >= 0) {
+        _decx -= _ay;
+        _x += _sx;
+      }
+      if (_decz >= 0) {
+        _decz -= _ay;
+        _z += _sz;
+      }
+      _y += _sy; _decx += _ax; _decz += _az;
+
+    } else if ((_dx <= _dz) && (_dy <= _dz)) {
+      //Bresenham step
+      if (_z == _z1) {
+        _done = true;
+        return;
+      }
+      if (_decx >= 0) {
+        _decx -= _az;
+        _x += _sx;
+      }
+      if (_decy >= 0) {
+        _decy -= _az;
+        _y += _sy;
+      }
+      _z += _sz; _decx += _ax; _decy += _ay;
+    }
+  }
+
+  bool done() {
+    return _done;
+  }
+
+  Vec3Ix pos() { return Vec3Ix(_x, _y, _z); }
+
+  virtual ~Bresenham3Iterator() { }
+  Bresenham3Iterator(const Bresenham3Iterator& other) = delete;
+  Bresenham3Iterator& operator=(const Bresenham3Iterator& other) = delete;
+
+private:
+  int _x0, _y0, _z0;
+  int _x1, _y1, _z1;
+  int _x, _y, _z;
+  int _sx, _sy, _sz;
+  int _ax, _ay, _az;
+  int _dx, _dy, _dz;
+  int _decx, _decy, _decz;
+  bool _done;
+};
+
 /**
  * Trace a straight line from start_pos to end_pos.
  * At each step fun(i, j, k) is called.
  *
- * NOTE start_pos and end_pos should be inside the grid
+ * NOTE start_pos and end_pos should be inside the grid.
  *
  * Reference: graphics gems article
  * TODO consider DDA-type raytracing.
@@ -206,22 +347,6 @@ void bresenham_trace3_increment(const Vec3Ix& start_pos,
 #undef UPDATE_CELL_HIT
 #undef UPDATE_CELL_PASS
 }
-
-
-template<class GridT, class ArrayT>
-void bresenham_trace3_hit_pass(const Vec3Ix& start_pos,
-                           const Vec3Ix& end_pos,
-                           const GridT& grid3,
-                           ArrayT& array3) {
-#define UPDATE_CELL_HIT
-#define UPDATE_CELL_PASS \
-  mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z); \
-  array3[mem_ix].pass += 1;
-#include "bresenham3_macro.def"
-#undef UPDATE_CELL_HIT
-#undef UPDATE_CELL_PASS
-}
-
 
 
 template<class TraceFunctor>
