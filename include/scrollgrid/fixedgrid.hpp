@@ -45,7 +45,7 @@ public:
   FixedGrid() :
       box_(),
       origin_(Vec::Zero()),
-      min_world_corner_ix_(VecIx::Zero()),
+      min_world_corner_ix_(Vec3Ix::Zero()),
       dimension_(Vec::Zero()),
       num_cells_(0),
       strides_(VecIx::Zero()),
@@ -205,13 +205,81 @@ public:
     return out;
   }
 
+  /**
+   * pack into grid_ix_t as [int16, int16, int16, 0]
+   * note grid_ix_it is a signed 64-bit type
+   * this gives range of [-32768, 32768] for each coordinate
+   * so if voxel is 5cm, [-1638.4 m, 1638.4 m] relative to initial center.
+   * this is useful as a unique hash.
+   * this is better than mem_ix because mem_ix is ambiguous for absolute ijk.
+   * if we use linear mem_ix as a hash,
+   * then because of scrolling there may be collisions, and mem_ix become
+   * invalidated once the corresponding voxel scrolls out.
+   *
+   * Note: we assume 3D here, even for 2D grids. Set grid_ix[2] to 0 for 2D.
+   */
+  hash_ix_t grid_to_hash(const Vec3Ix& grid_ix) const {
+    VecIx grid_positive(grid_ix - min_world_corner_ix_);
+    hash_ix_t hi = static_cast<hash_ix_t>(grid_positive[0]);
+    hash_ix_t hj = static_cast<hash_ix_t>(grid_positive[1]);
+    hash_ix_t hk = static_cast<hash_ix_t>(grid_positive[2]);
+    hash_ix_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    return h;
+  }
+
+  Vec3Ix hash_to_grid(hash_ix_t hix) const {
+    hash_ix_t hi = (hix & 0xffff000000000000) >> 48;
+    hash_ix_t hj = (hix & 0x0000ffff00000000) >> 32;
+    hash_ix_t hk = (hix & 0x00000000ffff0000) >> 16;
+    Vec3Ix grid_ix(hi, hj, hk);
+    grid_ix += min_world_corner_ix_;
+    return grid_ix;
+  }
+
+  Mat3Ix multiple_hash_to_grid(const HashIxVector& hindices) const {
+    Mat3Ix out(3, hindices.rows());
+    for (size_t i=0; i < hindices.rows(); ++i) {
+      Vec3Ix gix = this->hash_to_grid(hindices[i]);
+      out.col(i) = gix;
+    }
+    return out;
+  }
+
+  /**
+   * Like the above but does not offset by origin.
+   * In the fixed case we assume the min ijk for origin is 0,0,0.
+   */
+  hash_ix_t local_grid_to_hash(const Vec3Ix& grid_ix) const {
+    // TODO assumes grid_ix is inside box.
+    hash_ix_t hi = static_cast<hash_ix_t>(grid_ix[0]);
+    hash_ix_t hj = static_cast<hash_ix_t>(grid_ix[1]);
+    hash_ix_t hk = static_cast<hash_ix_t>(grid_ix[2]);
+    hash_ix_t h = (hi << 48) | (hj << 32) | (hk << 16);
+    return h;
+  }
+
+  Vec3Ix hash_to_local_grid(hash_ix_t hix) const {
+    hash_ix_t hi = (hix & 0xffff000000000000) >> 48;
+    hash_ix_t hj = (hix & 0x0000ffff00000000) >> 32;
+    hash_ix_t hk = (hix & 0x00000000ffff0000) >> 16;
+    Vec3Ix grid_ix(hi, hj, hk);
+    return grid_ix;
+  }
+
+  Mat3Ix multiple_local_hash_to_grid(const HashIxVector& hindices) const {
+    Mat3Ix out(3, hindices.rows());
+    for (size_t i=0; i < hindices.rows(); ++i) {
+      Vec3Ix gix = this->local_hash_to_grid(hindices[i]);
+      out.col(i) = gix;
+    }
+    return out;
+  }
+
  public:
-  grid_ix_t dim_i() const { return dimension_[0]; }
-  grid_ix_t dim_j() const { return dimension_[1]; }
-  grid_ix_t first_i() const { return 0; }
-  grid_ix_t first_j() const { return 0; }
-  grid_ix_t last_i() const { return dimension_[0]; }
-  grid_ix_t last_j() const { return dimension_[1]; }
+  grid_ix_t dim(int i) const { return dimension_[i]; }
+  grid_ix_t first(int i) const { return 0; }
+  grid_ix_t last(int i) const { return dimension_[i]; }
+
   const VecIx& dimension() const { return dimension_; }
   const Vec& radius() const { return box_.radius(); }
   const Vec& origin() const { return origin_; }
@@ -250,7 +318,9 @@ public:
   Vec origin_;
 
   // minimum world corner in ijk. used for hash
-  VecIx min_world_corner_ix_;
+  // Note that it is always 3D, even for 2D grids.
+  // For 2D grids we ignore the third dimension.
+  Vec3Ix min_world_corner_ix_;
 
   // number of grid cells along each axis
   VecIx dimension_;
@@ -265,29 +335,6 @@ public:
   // size of grid cells
   Scalar resolution_;
 };
-
-#if 0
-  /**
-   * Is inside 2D box containing grid?
-   * pt is in same frame as center (probably world_view)
-   */
-  bool is_inside_box(Scalar x, Scalar y) const {
-    return box_.contains(Vec(x, y));
-  }
-  bool is_inside_grid(grid_ix_t i, grid_ix_t j) const {
-    return this->is_inside_grid(VecIx(i, j));
-  }
-  VecIx world_to_grid(Scalar x, Scalar y) const {
-    return this->world_to_grid(Vec(x, y));
-  }
-  Vec grid_to_world(grid_ix_t i, grid_ix_t j) const {
-    return this->grid_to_world(VecIx(i, j));
-  }
-
-  mem_ix_t grid_to_mem(grid_ix_t i, grid_ix_t j) const {
-    return this->grid_to_mem(VecIx(i, j));
-  }
-#endif
 
 typedef FixedGrid<float, 2> FixedGrid2f;
 typedef FixedGrid<float, 3> FixedGrid3f;
