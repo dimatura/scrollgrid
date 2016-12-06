@@ -5,7 +5,6 @@
  *
  */
 
-
 #ifndef DENSE_ARRAY2_HPP_ZJGDW1JR
 #define DENSE_ARRAY2_HPP_ZJGDW1JR
 

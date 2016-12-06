@@ -7,7 +7,7 @@
 #include <ros/ros.h>
 
 #include <pcl_util/point_types.hpp>
-#include <scrollgrid/dense_array3.hpp>
+#include <scrollgrid/dense_array.hpp>
 #include <scrollgrid/fixedgrid3.hpp>
 #include <scrollgrid/raycasting.hpp>
 #include <scrollgrid/occmap_constants.hpp>
@@ -25,7 +25,7 @@ public:
 
 private:
   ca::FixedGrid3f grid_;
-  ca::DenseArray3<T> occstats_;
+  ca::DenseArray<T, 3> occstats_;
 
 
 public:

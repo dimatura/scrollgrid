@@ -13,8 +13,10 @@
 #include "scrollgrid/scrollgrid2.hpp"
 #include "scrollgrid/scrollgrid3.hpp"
 
-#include "scrollgrid/dense_array2.hpp"
-#include "scrollgrid/dense_array3.hpp"
+#include "scrollgrid/dense_array.hpp"
+
+//#include "scrollgrid/dense_array2.hpp"
+//#include "scrollgrid/dense_array3.hpp"
 
 #include "scrollgrid/grid_util.hpp"
 
@@ -22,8 +24,9 @@
 
 #include "scrollgrid/raycasting.hpp"
 
-#include "scrollgrid/fixedoccmap2.hpp"
-#include "scrollgrid/fixedoccmap3.hpp"
+//#include "scrollgrid/fixedoccmap2.hpp"
+//#include "scrollgrid/fixedoccmap3.hpp"
+
 #include "scrollgrid/fixedgrid.hpp"
 
 /**
@@ -32,7 +35,7 @@
 class ClearFunctor : public ca::ClearCellsFun {
 public:
   ClearFunctor(const ca::ScrollGrid3f* grid,
-               ca::DenseArray3<uint8_t>* occ_array) {
+               ca::DenseArray<uint8_t, 3>* occ_array) {
     grid_ = grid;
     occ_array_ = occ_array;
   }
@@ -55,7 +58,7 @@ public:
 
   virtual ~ClearFunctor() { }
   const ca::ScrollGrid3f * grid_;
-  ca::DenseArray3<uint8_t> * occ_array_;
+  ca::DenseArray<uint8_t, 3> * occ_array_;
 };
 
 int main(int argc, char *argv[]) {
@@ -71,19 +74,19 @@ int main(int argc, char *argv[]) {
   // a dense occupancy grid, type uint8. uses same dimensions as grid3.
   // doing otherwise would end badly.
   // a sparse array or any other backend could be used here.
-  ca::DenseArray3<uint8_t> occ_array3(grid3.dimension());
+  ca::DenseArray<uint8_t, 3> occ_array3(grid3.dimension());
 
   // fill with zeros
   occ_array3.fill(0);
 
   // manipulate the array directly.
   // if you go out of bounds, it will crash.
-  occ_array3.get(100, 100, 100) = 255;
-  std::cout << "occarray3(100, 100, 100) " << int(occ_array3.get(100, 100, 100)) << "\n";
+  occ_array3.get({100, 100, 100}) = 255;
+  std::cout << "occarray3(100, 100, 100) " << int(occ_array3.get({100, 100, 100})) << "\n";
 
   // linear memory address also works, but does not know anything
   // about location in space (hence 'local')
-  ca::mem_ix_t mix = occ_array3.local_grid_to_mem(100, 100, 100);
+  ca::mem_ix_t mix = occ_array3.local_grid_to_mem({100, 100, 100});
   std::cout << "occarray3[" << mix << "] " << int(occ_array3[mix]) << "\n";
 
   // use bresenham to draw a line. again, directly in voxel space

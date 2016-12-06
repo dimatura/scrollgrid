@@ -13,8 +13,7 @@
 #include "scrollgrid/scrollgrid2.hpp"
 #include "scrollgrid/scrollgrid3.hpp"
 
-#include "scrollgrid/dense_array2.hpp"
-#include "scrollgrid/dense_array3.hpp"
+#include "scrollgrid/dense_array.hpp"
 
 #include "scrollgrid/sparse_array.hpp"
 
@@ -26,7 +25,7 @@ namespace ca {
  */
 template<class Scalar, class CellType>
 void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
-                 ca::DenseArray3<CellType>& array,
+                 ca::DenseArray<CellType, 3>& array,
                  Vec3Ix clear_i_min, Vec3Ix clear_i_max,
                  Vec3Ix clear_j_min, Vec3Ix clear_j_max,
                  Vec3Ix clear_k_min, Vec3Ix clear_k_max) {
@@ -79,7 +78,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
 template<class Scalar, class CellType>
 void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
                  ca::SparseArray<mem_ix_t>& occ_vox,
-                 ca::DenseArray3<CellType>& array,
+                 ca::DenseArray<CellType, 3>& array,
                  Vec3Ix clear_i_min, Vec3Ix clear_i_max,
                  Vec3Ix clear_j_min, Vec3Ix clear_j_max,
                  Vec3Ix clear_k_min, Vec3Ix clear_k_max) {
@@ -134,7 +133,7 @@ void clear_array(const ca::ScrollGrid3<Scalar>& grid3,
  */
 template<class Scalar, class CellType>
 void clear_array2(const ca::ScrollGrid2<Scalar>& grid2,
-                  ca::DenseArray2<CellType>& array,
+                  ca::DenseArray<CellType, 3>& array,
                   Vec2Ix clear_i_min, Vec2Ix clear_i_max,
                   Vec2Ix clear_j_min, Vec2Ix clear_j_max) {
   // TODO avoid double-clearing overlaps

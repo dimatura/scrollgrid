@@ -16,7 +16,6 @@
 #include "scrollgrid/box.hpp"
 #include "scrollgrid/ray.hpp"
 #include "scrollgrid/scrollgrid3.hpp"
-#include "scrollgrid/dense_array3.hpp"
 
 namespace ca
 {
