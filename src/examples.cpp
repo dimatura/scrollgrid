@@ -21,6 +21,8 @@
 #include "scrollgrid/raycasting.hpp"
 #include "scrollgrid/occ_raycasting.hpp"
 
+#include "scrollgrid/fixedoccmap3.h"
+
 /**
  * I think I defined one already somewhere but forgot where
  */
@@ -82,10 +84,10 @@ int main(int argc, char *argv[]) {
   std::cout << int(occ_array3[mix]) << "\n";
 
   // use bresenham to draw a line. again, directly in voxel space
-  ca::bresenham_trace_simple(ca::Vec3Ix(20, 40, 10),
-                             ca::Vec3Ix(180, 170, 190),
-                             grid3,
-                             occ_array3);
+  ca::bresenham_trace3_increment(ca::Vec3Ix(20, 40, 10),
+                                 ca::Vec3Ix(180, 170, 190),
+                                 grid3,
+                                 occ_array3);
 
   // now get an xyz point
   Eigen::Vector3f pt(10., 20., 30.);

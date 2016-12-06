@@ -8,17 +8,17 @@
 #ifndef SPARSE_ARRAY3_HPP_LWA5VI1M
 #define SPARSE_ARRAY3_HPP_LWA5VI1M
 
-//#include <unordered_map>
-#include <boost/unordered_map.hpp>
-
-#include <boost/shared_ptr.hpp>
+/**
+ * TODO Apparently stl hash map is slow
+ */
+#include <unordered_map>
+#include <memory>
 
 #include <pcl_util/point_types.hpp>
 
 #include "scrollgrid/grid_types.hpp"
 
-namespace ca
-{
+namespace ca {
 
 /**
  * Assumes input is a decent hash key to begin with
@@ -36,10 +36,10 @@ class SparseArray {
 public:
   typedef CellT CellType;
 
-  typedef boost::shared_ptr<SparseArray> Ptr;
-  typedef boost::shared_ptr<const SparseArray> ConstPtr;
+  typedef std::shared_ptr<SparseArray> Ptr;
+  typedef std::shared_ptr<const SparseArray> ConstPtr;
 
-  typedef typename boost::unordered_map<uint64_t, CellType, TrivialHash> MapType;
+  typedef typename std::unordered_map<uint64_t, CellType, TrivialHash> MapType;
   //typedef typename boost::container::flat_map<uint64_t, CellType> MapType;
 
   typedef typename MapType::iterator iterator;
@@ -88,7 +88,7 @@ public:
     hash_map_.clear_no_resize();
   }
 
-  void erase( iterator pos ) {
+  void erase(iterator pos) {
     hash_map_.erase(pos);
   }
 
@@ -105,6 +105,6 @@ private:
 
 };
 
-} /* ca */
+}
 
 #endif /* end of include guard: SPARSE_ARRAY3_HPP_LWA5VI1M */

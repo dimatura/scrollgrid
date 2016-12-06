@@ -5,7 +5,6 @@
  *
  */
 
-
 #ifndef ALGO_UTIL_HPP_ZB5UF8WS
 #define ALGO_UTIL_HPP_ZB5UF8WS
 

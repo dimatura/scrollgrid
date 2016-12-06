@@ -8,9 +8,10 @@
 #ifndef DENSE_ARRAY3_HPP_JEO7CAXQ
 #define DENSE_ARRAY3_HPP_JEO7CAXQ
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
+#include <memory>
 #include <vector>
 
 #include <Eigen/Core>
@@ -31,9 +32,7 @@ namespace ca
  * Maps ijk to an CellT.
  * No notion of origin, scrolling etc.
  * The *Grid3 classes handle that.
- * TODO maybe use boost::shared_array,
- * or std::shared_array if we move to C++11
- *
+ * TODO: maybe use std::shared_array
  */
 template<class CellT>
 class DenseArray3 {
@@ -43,8 +42,8 @@ public:
   typedef CellT * iterator;
   typedef const CellT * const_iterator;
 
-  typedef boost::shared_ptr<DenseArray3> Ptr;
-  typedef boost::shared_ptr<const DenseArray3> ConstPtr;
+  typedef std::shared_ptr<DenseArray3> Ptr;
+  typedef std::shared_ptr<const DenseArray3> ConstPtr;
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -64,9 +63,9 @@ public:
       dimension_(0, 0, 0),
       num_cells_(0),
       strides_(0, 0, 0),
-      grid_(NULL),
-      begin_(NULL),
-      end_(NULL),
+      grid_(nullptr),
+      begin_(nullptr),
+      end_(nullptr),
       owns_memory_(false)
   { }
 
@@ -99,7 +98,10 @@ public:
   }
 
   virtual ~DenseArray3() {
-    if (owns_memory_ && grid_) { delete[] grid_; grid_ = NULL; }
+    if (owns_memory_ && grid_) {
+      delete[] grid_;
+      grid_ = nullptr;
+    }
   }
 
   void reset(const Vec3Ix& dimension) {

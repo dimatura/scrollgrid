@@ -8,7 +8,7 @@
 #ifndef RAY_HPP_TVFS3AKQ
 #define RAY_HPP_TVFS3AKQ
 
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -30,7 +30,6 @@ class Ray3 {
    *
    * if you want to use origin/endpoint
    * Ray3(origin, (endpoint-origin).normalized());
-   *
    */
   Ray3(const Vec3& origin,
        const Vec3& direction) :
@@ -54,7 +53,7 @@ class Ray3 {
   Vec3 origin, direction;
   Scalar tmin, tmax; /// ray min and max distances
   Vec3 invdir; // for convenience in AABB intersection
-  boost::tuple<int, int, int> sign;
+  std::tuple<int, int, int> sign;
 
 };
 

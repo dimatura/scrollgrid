@@ -9,10 +9,11 @@
 #ifndef DENSE_ARRAY2_HPP_ZJGDW1JR
 #define DENSE_ARRAY2_HPP_ZJGDW1JR
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 #include <vector>
+#include <memory>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -32,7 +33,6 @@ namespace ca
  * Maps ij to an CellT.
  * No notion of origin, scrolling etc.
  * The *Grid2 classes handle that.
- *
  */
 template<class CellT>
 class DenseArray2 {
@@ -42,28 +42,19 @@ public:
   typedef CellT * iterator;
   typedef const CellT * const_iterator;
 
-  typedef boost::shared_ptr<DenseArray2> Ptr;
-  typedef boost::shared_ptr<const DenseArray2> ConstPtr;
+  typedef std::shared_ptr<DenseArray2> Ptr;
+  typedef std::shared_ptr<const DenseArray2> ConstPtr;
 
 public:
-  // TODO perhaps stride/memory layout should
-  // be further configurable.
-  // TODO maybe *grid3 should just map to ijk and then
-  // this class will map to linear memory address.
-  // problem: then it needs scrolling info
-  // I guess we can separate
-  // - world_to_grid (infinite grid)
-  // - grid_to_storage (linear mem or hash key)
-  // - storage (dense array or sparse table)
-  //
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
   DenseArray2() :
       dimension_(0, 0),
       num_cells_(0),
       strides_(0, 0),
-      grid_(NULL),
-      begin_(NULL),
-      end_(NULL),
+      grid_(nullptr),
+      begin_(nullptr),
+      end_(nullptr),
       own_memory_(false)
   { }
 
@@ -92,19 +83,19 @@ public:
   }
 
   void reset(const Vec2Ix& dimension, ArrayType grid_data) {
-    if (grid_ != NULL)
-    {
+    if (grid_ != nullptr) {
         delete[] grid_;
     }
     dimension_ = dimension;
     num_cells_ = dimension.prod();
-    // TODO configurable
+    // TODO configurable strides
     strides_ = ca::Vec2Ix(dimension[1], 1);
     grid_ = grid_data;
     begin_ = &(grid_[0]);
-    end_ = &(grid_[0])+num_cells_;
+    end_ = &(grid_[0]) + num_cells_;
     own_memory_ = false;
   }
+
 public:
 
   /**
@@ -160,7 +151,6 @@ public:
   }
 
 
-
 public:
   // properties
   grid_ix_t dim_i() const { return dimension_[0]; }
@@ -180,7 +170,7 @@ private:
   // number of cells
   grid_ix_t num_cells_;
 
-  // grid strides to translate from linear to 3D layout.
+  // grid strides to translate from linear to 2D layout.
   // C-ordering, ie x slowest, z fastest.
   Vec2Ix strides_;
 

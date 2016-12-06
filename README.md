@@ -11,6 +11,21 @@
 See `src/examples.cpp` and `tests/scrollgrid3.cpp` for examples.
 
 
+## Concepts
+
+```
+"world_xyz" xyz world frame
+"grid_xyz" xyz grid frame (shifted relative to world_xyz by origin)
+"grid_ijk" scaled and discretized grid coordinates:
+    i = floor( (x-origin_x-0.5)/resolution ) 
+"local_ijk" grid_ijk shifted by scrolling and limited/wrapped to local extent
+    li = (i - scroll_offset_i) modulo (dim_i)
+"mem_ix" index into flat storage from local_ijk.
+    mem_ix = local_ijk.dot(strides)
+"hash_ix": bit-packed version of grid_ijk
+```
+
+
 ### License ###
 [This software is BSD licensed.](http://opensource.org/licenses/BSD-3-Clause)
  

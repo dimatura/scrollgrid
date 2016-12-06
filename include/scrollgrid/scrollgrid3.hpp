@@ -9,8 +9,8 @@
 #ifndef SCROLLGRID3_HPP_I9SAOOSJ
 #define SCROLLGRID3_HPP_I9SAOOSJ
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -31,7 +31,8 @@ namespace ca
 /**
  * These are empty functors defining the interface for callbacks
  * to clear cells and fix edges.
- * TODO this could also be achieved with templates.
+ *
+ * TODO: lambda
  */
 struct ClearCellsFun {
   virtual void operator()(const Vec3Ix& start,
@@ -44,7 +45,6 @@ struct FixEdgesFun {
                           grid_ix_t leading) const { }
 };
 
-//typedef boost::function< void (grid_ix_t dim, grid_ix_t trailing, grid_ix_t leading) > FixEdgesFun;
 /**
  * "world_xyz" xyz world frame
  * "grid_xyz" xyz grid frame (shifted relative to world_xyz by origin)
@@ -54,11 +54,11 @@ struct FixEdgesFun {
  *     li = (i - scroll_offset_i) modulo (dim_i)
  * "mem_ix" index into flat storage from local_ijk.
  *     mem_ix = local_ijk.dot(strides)
- * "hash_ix": bit-packed version of grid_ijk? TODO
+ * "hash_ix": bit-packed version of grid_ijk
  *
  */
 
-// TODO start using vec4 instead for SSE optimization
+// TODO consider vec4 for SSE optimization
 
 template<class Scalar>
 class ScrollGrid3 {

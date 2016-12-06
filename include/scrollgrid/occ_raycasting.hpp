@@ -124,8 +124,9 @@ void occupancy_trace(const Vec3Ix& start_pos,
       }
     }
   }
-  fun(x,y,z,true);
+  fun(x, y, z, true);
 }
+
 
 /**
  * Update occupancy information along ray.
@@ -179,59 +180,60 @@ void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
       ay = 2*dy,
       az = 2*dz;
 
-  if ( ( dy <= dx ) && ( dz <= dx ) ) {
+  if (( dy <= dx ) && ( dz <= dx )) {
     // this is tracing loop. we step through the ray in integer coordinates
     // until we reach the end
     for (int decy=ay-dx, decz=az-dx;
          ;
          x+=sx, decy+=ay, decz+=az) {
 
-      // here we are in the middle of tracing the
-      // ray. here we are passing through.
+      // here we are passing through
       mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
 
-      // by definition here we are passing through
-      // TODO correct & efficent boundary check
       int32_t new_value = static_cast<int32_t>(array3[mem_ix])-CA_SG_BELIEF_UPDATE_NEG;
       array3[mem_ix] = static_cast<uint8_t>(std::max(CA_SG_COMPLETELY_FREE, new_value));
 
       //Bresenham step
-      if ( x==end_pos[0] ) break;
-      if ( decy>=0 ) {
+      if (x==end_pos[0]) {
+        break;
+      }
+      if (decy>=0) {
         decy-=ax;
         y+=sy;
       }
-      if ( decz>=0 ) {
+      if (decz>=0) {
         decz-=ax;
         z+=sz;
       }
     }
-  } else if ( ( dx <= dy ) && ( dz <= dy ) ) {
+  } else if ((dx <= dy) && (dz <= dy)) {
     //dy>=dx,dy
     for (int decx=ax-dy,decz=az-dy;
          ;
-         y+=sy,decx+=ax,decz+=az ) {
+         y+=sy,decx+=ax,decz+=az) {
 
       mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       int32_t new_value = static_cast<int32_t>(array3[mem_ix])-CA_SG_BELIEF_UPDATE_NEG;
       array3[mem_ix] = static_cast<uint8_t>(std::max(CA_SG_COMPLETELY_FREE, new_value));
 
       //Bresenham step
-      if ( y==end_pos[1] ) break;
-      if ( decx>=0 ) {
+      if (y==end_pos[1]) {
+        break;
+      }
+      if (decx>=0) {
         decx-=ay;
         x+=sx;
       }
-      if ( decz>=0 ) {
+      if (decz>=0) {
         decz-=ay;
         z+=sz;
       }
     }
-  } else if ( ( dx <= dz ) && ( dy <= dz ) ) {
+  } else if ((dx <= dz) && (dy <= dz)) {
     //dy>=dx,dy
     for (int decx=ax-dz,decy=ay-dz;
          ;
-         z+=sz,decx+=ax,decy+=ay ) {
+         z+=sz,decx+=ax,decy+=ay) {
 
       mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
       int32_t new_value = static_cast<int32_t>(array3[mem_ix])-CA_SG_BELIEF_UPDATE_NEG;
@@ -239,11 +241,11 @@ void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
 
       //array3[mem_ix] = ray_ctr++;
       //Bresenham step
-      if ( z==end_pos[2] ) break;
-      if ( decx>=0 ) {
+      if (z==end_pos[2]) break;
+      if (decx>=0) {
         decx-=az;
         x+=sx;
-      } if ( decy>=0 ) {
+      } if (decy>=0) {
         decy-=az;
         y+=sy;
       }
@@ -256,10 +258,8 @@ void occupancy_trace_simple(const Vec3Ix& start_pos, // in ijk
   mem_ix_t mem_ix = grid3.grid_to_mem(x, y, z);
   int32_t new_value = static_cast<int32_t>(array3[mem_ix])+CA_SG_BELIEF_UPDATE_POS;
   array3[mem_ix] = static_cast<uint8_t>(std::min(CA_SG_COMPLETELY_OCCUPIED, new_value));
+}
 
 }
-} /* ca
- */
 
 #endif /* end of include guard: OCC_RAYCASTING_HPP_7K2XI8HT */
-

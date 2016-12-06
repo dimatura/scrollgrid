@@ -8,9 +8,10 @@
 #ifndef SCROLLGRID2_HPP_YPBBYE5Q
 #define SCROLLGRID2_HPP_YPBBYE5Q
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
+#include <memory>
 #include <vector>
 
 #include <Eigen/Core>
@@ -34,8 +35,8 @@ class ScrollGrid2 {
 public:
   typedef Eigen::Matrix<Scalar, 2, 1> Vec2;
 
-  typedef boost::shared_ptr<ScrollGrid2> Ptr;
-  typedef boost::shared_ptr<const ScrollGrid2> ConstPtr;
+  typedef std::shared_ptr<ScrollGrid2> Ptr;
+  typedef std::shared_ptr<const ScrollGrid2> ConstPtr;
 
 public:
   ScrollGrid2() :
@@ -265,7 +266,7 @@ public:
   /**
    * This is faster than grid_to_mem, as it avoids modulo.
    * But it only works if the grid_ix are inside the bounding box.
-   * Hopefully branch prediction kicks in
+   * Hopefully branch prediction kicks in for the if's.
    */
   mem_ix_t grid_to_mem2(const Vec2Ix& grid_ix) const {
     Vec2Ix grid_ix2(grid_ix);
@@ -317,6 +318,7 @@ public:
   }
 
   Vec2Ix mem_to_grid(grid_ix_t mem_ix) const {
+
     // TODO does this work for x-fastest strides?
     grid_ix_t i = mem_ix/strides_[0];
     mem_ix -= i*strides_[0];

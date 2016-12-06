@@ -13,8 +13,7 @@
 
 #include <vector>
 #include <algorithm>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -36,8 +35,8 @@ public:
   typedef Scalar ScalarType;
   typedef Eigen::Matrix<Scalar, 2, 1> Vec2;
 
-  typedef boost::shared_ptr<FixedGrid2> Ptr;
-  typedef boost::shared_ptr<const FixedGrid2> ConstPtr;
+  typedef std::shared_ptr<FixedGrid2> Ptr;
+  typedef std::shared_ptr<const FixedGrid2> ConstPtr;
 
 public:
   FixedGrid2() :
@@ -57,8 +56,7 @@ public:
       dimension_(dimension),
       num_cells_(dimension.prod()),
       strides_(dimension[1], 1),
-      resolution_(resolution)
-  {
+      resolution_(resolution) {
     Vec2 min_pt = center-(dimension.cast<Scalar>()*resolution)/2;
     Vec2 max_pt = center+(dimension.cast<Scalar>()*resolution)/2;
     Vec2 radius = (max_pt-min_pt)/2;
@@ -76,8 +74,7 @@ public:
       dimension_(other.dimension_),
       num_cells_(other.num_cells_),
       strides_(other.strides_),
-      resolution_(other.resolution_)
-  {
+      resolution_(other.resolution_) {
   }
 
   FixedGrid2& operator=(const FixedGrid2& other) {
@@ -113,7 +110,7 @@ public:
   }
 
   /**
-   * Is inside 3D box containing grid?
+   * Is inside 2D box containing grid?
    * pt is in same frame as center (probably world_view)
    */
   bool is_inside_box(Scalar x, Scalar y) const {

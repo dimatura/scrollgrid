@@ -12,10 +12,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-namespace ca
-{
-namespace scrollgrid
-{
+namespace ca { namespace scrollgrid {
 
 /**
  * Describes an axis-aligned volume in space.
@@ -122,15 +119,6 @@ class Box {
         (v.array() <= bounds_.second.array()).all();
   }
 
-#if 0
-  template<typename Scalar2>
-  Box<Scalar2, Dim> cast() {
-    Box<Scalar2, Dim> ret(bounds_[0].template cast<Scalar2>(),
-                          bounds_[1].template cast<Scalar2>());
-    return ret;
-  }
-#endif
-
  private:
   // call after bounds change
   void reset_center_radius() {
@@ -145,10 +133,10 @@ class Box {
   }
 
  private:
-
   Vec center_;
   Vec radius_;
   std::pair<Vec, Vec> bounds_;
+
 };
 
 }
