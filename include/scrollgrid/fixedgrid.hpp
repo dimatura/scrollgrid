@@ -20,7 +20,7 @@
 
 #include <ros/console.h>
 
-#include <geom_cast/geom_cast.hpp>
+//#include <geom_cast/geom_cast.hpp>
 #include <pcl_util/point_types.hpp>
 
 #include "scrollgrid/grid_types.hpp"
@@ -28,13 +28,13 @@
 
 namespace ca { namespace scrollgrid {
 
-template<class Scalar, int Dim_>
+template<class Scalar, int Dim>
 class FixedGrid {
 public:
-  enum { Dim = Dim_ };
+  //enum { Dim = Dim_ };
   typedef Scalar ScalarType;
   typedef Eigen::Matrix<Scalar, Dim, 1> Vec;
-  typedef Eigen::Matrix<Scalar, Dim, Eigen::Dynamic> Mat;
+  typedef Eigen::Matrix<Scalar, Dim, Eigen::Dynamic> MatS;
   typedef Eigen::Matrix<grid_ix_t, Dim, 1> VecIx;
   typedef Eigen::Matrix<grid_ix_t, Dim, 1> MatIx;
 
@@ -84,7 +84,7 @@ public:
   }
 
   FixedGrid& operator=(const FixedGrid& other) {
-    if (*this==other) { return *this; }
+    if (this==&other) { return *this; }
     box_ = other.box_;
     origin_ = other.origin_;
     min_world_corner_ix_ = other.min_world_corner_ix_;
@@ -128,7 +128,7 @@ public:
   }
 
 
-  Eigen::VectorXi multiple_is_inside_box(const Mat& pts) {
+  Eigen::VectorXi multiple_is_inside_box(const MatS& pts) {
     Eigen::VectorXi out(pts.cols());
     for (int i=0; i < pts.cols(); ++i) {
       const Eigen::Matrix<Scalar, Dim, 1>& pt(pts.col(i));
@@ -136,12 +136,6 @@ public:
       out[i] = inside;
     }
     return out;
-  }
-
-
-  template<class PointT>
-  bool is_inside_box(const PointT& pt) const {
-    return box_.contains(ca::point_cast<Vec>(pt));
   }
 
   /**
@@ -159,7 +153,7 @@ public:
   VecIx world_to_grid(const Vec& x) const {
     Vec tmp = ((x - origin_).array() - 0.5*resolution_)/resolution_;
     //return tmp.cast<grid_ix_t>();
-    return VecIx(tmp.array().round());
+    return VecIx(tmp.array().round().template cast<grid_ix_t>());
   }
 
   Vec grid_to_world(const VecIx& grid_ix) const {
@@ -167,10 +161,10 @@ public:
     return w;
   }
 
-  Mat multiple_grid_to_world(const MatIx& grid_indices) {
-    Mat out(3, grid_indices.cols());
+  MatS multiple_grid_to_world(const MatIx& grid_indices) {
+    MatS out(Dim, grid_indices.cols());
     for (int ix=0; ix < grid_indices.cols(); ++ix) {
-      Vec3Ix gix(grid_indices.col(ix));
+      VecIx gix(grid_indices.col(ix));
       out.col(ix) = this->grid_to_world(gix);
     }
     return out;
@@ -188,7 +182,7 @@ public:
   MemIxVector multiple_grid_to_mem(const MatIx& grid_indices) {
     MemIxVector out(grid_indices.cols());
     for (int ix=0; ix < grid_indices.cols(); ++ix) {
-      Vec3Ix gix(grid_indices.col(ix));
+      VecIx gix(grid_indices.col(ix));
       out[ix] = this->grid_to_mem(gix);
     }
     return out;

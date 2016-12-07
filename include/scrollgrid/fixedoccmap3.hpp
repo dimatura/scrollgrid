@@ -8,7 +8,7 @@
 
 #include <pcl_util/point_types.hpp>
 #include <scrollgrid/dense_array.hpp>
-#include <scrollgrid/fixedgrid3.hpp>
+#include <scrollgrid/fixedgrid.hpp>
 #include <scrollgrid/raycasting.hpp>
 #include <scrollgrid/occmap_constants.hpp>
 
@@ -24,12 +24,12 @@ public:
   typedef std::shared_ptr<FixedOccMap3> Ptr;
 
 private:
-  ca::FixedGrid3f grid_;
+  FixedGrid3f grid_;
   ca::DenseArray<T, 3> occstats_;
 
 
 public:
-  FixedOccMap3(const ca::FixedGrid3f& grid) {
+  FixedOccMap3(const FixedGrid3f& grid) {
     grid_ = grid;
     this->init();
   }
@@ -46,15 +46,15 @@ public:
     occstats_.fill(OccMapConstants<T>::UNKNOWN);
   }
 
-  void update(RowMatrixX3f& p, RowMatrixX3f& vp) {
+  void update(Eigen::Matrix3Xf& p, Eigen::Matrix3Xf& vp) {
     //UpdateOccupancy(xyzwvp, grid_, occstats_);
 
     ROS_ASSERT(p.rows() == vp.rows());
 
     const auto& box(grid_.box());
-    for (int i=0; i < p.rows(); ++i) {
-      Eigen::Vector3f xyzf(p.row(i));
-      Eigen::Vector3f originf(vp.row(i));
+    for (int i=0; i < p.cols(); ++i) {
+      Eigen::Vector3f xyzf(p.col(i));
+      Eigen::Vector3f originf(vp.col(i));
       Ray3<float> ray(originf, (xyzf-originf));
       if (!ca::aabb_ray_intersect(box, ray)) {
         //std::cerr << "no box intersect" << std::endl;
@@ -111,7 +111,7 @@ public:
   virtual ~FixedOccMap3() { }
 
 public:
-  ca::FixedGrid3f grid() const {
+  FixedGrid3f grid() const {
     return grid_;
   }
 

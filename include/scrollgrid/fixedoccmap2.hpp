@@ -8,13 +8,13 @@
 
 #include <pcl_util/point_types.hpp>
 
-#include <scrollgrid/dense_array2.hpp>
-#include <scrollgrid/fixedgrid2.hpp>
+#include <scrollgrid/dense_array.hpp>
+#include <scrollgrid/fixedgrid.hpp>
 #include <scrollgrid/raycasting.hpp>
 #include <scrollgrid/occmap_constants.hpp>
 
 /**
- * FixedGrid3 + DenseArray3 = static occmap.
+ * FixedGrid + DenseArray = static occmap.
  */
 namespace ca { namespace scrollgrid {
 
@@ -25,7 +25,7 @@ public:
   typedef std::shared_ptr<FixedOccMap2> Ptr;
 
 public:
-  FixedOccMap2(const ca::FixedGrid2f& grid) {
+  FixedOccMap2(const FixedGrid2f& grid) {
     grid_ = grid;
     this->init();
   }
@@ -42,14 +42,14 @@ public:
     occstats_.fill(OccMapConstants<T>::UNKNOWN);
   }
 
-  void update(RowMatrixX2f& p, RowMatrixX2f& vp) {
+  void update(const Eigen::Matrix2Xf& p, const Eigen::Matrix2Xf& vp) {
 
     ROS_ASSERT(p.rows() == vp.rows());
 
     const auto& box(grid_.box());
-    for (int i=0; i < p.rows(); ++i) {
-      Eigen::Vector2f xyf(p.row(i));
-      Eigen::Vector2f originf(vp.row(i));
+    for (int i=0; i < p.cols(); ++i) {
+      Eigen::Vector2f xyf(p.col(i));
+      Eigen::Vector2f originf(vp.col(i));
 
       Ray2<float> ray(originf, (xyf-originf));
       if (!ca::aabb_ray_intersect(box, ray)) {
@@ -98,20 +98,20 @@ public:
   }
 
   //TODO memory ownership
-  DenseArray2<T>& get_array() const {
+  DenseArray<T, 2>& get_array() const {
     return occstats_;
   }
 
   virtual ~FixedOccMap2() { }
 
 public:
-  ca::FixedGrid2f grid() const {
+  FixedGrid2f grid() const {
     return grid_;
   }
 
 private:
-  ca::FixedGrid2f grid_;
-  ca::DenseArray2<T> occstats_;
+  FixedGrid2f grid_;
+  ca::DenseArray<T, 2> occstats_;
 
 };
 
