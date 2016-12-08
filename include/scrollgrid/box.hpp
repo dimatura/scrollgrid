@@ -139,7 +139,9 @@ class Box {
 
 };
 
-}
-} /* ca */
+typedef Box<float, 2> Box2f;
+typedef Box<float, 3> Box3f;
+
+} } /* ca */
 
 #endif /* end of include guard: BOX_HPP_4WFLKG9Q */

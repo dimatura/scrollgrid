@@ -14,10 +14,12 @@ struct OccMapConstants<float> {
   static constexpr float UPDATE_POS = 0.08f;
   static constexpr float UPDATE_NEG = 0.01f;
 
+  static
   float update_pos(float x) {
     return (std::min(x + UPDATE_POS, OCCUPIED));
   }
 
+  static
   float update_neg(float x) {
     return (std::max(x - UPDATE_NEG, FREE));
   }
@@ -31,6 +33,7 @@ struct OccMapConstants<uint8_t> {
   static constexpr int32_t UPDATE_POS = 20;
   static constexpr int32_t UPDATE_NEG = 2;
 
+  static
   uint8_t update_pos(uint8_t x) {
     // TODO avoid casts
     int32_t new_val = static_cast<int32_t>(x) + UPDATE_POS;
@@ -38,6 +41,7 @@ struct OccMapConstants<uint8_t> {
     return static_cast<uint8_t>(new_val);
   }
 
+  static
   uint8_t update_neg(uint8_t x) {
     // TODO avoid casts
     int32_t new_val = static_cast<int32_t>(x) - UPDATE_NEG;

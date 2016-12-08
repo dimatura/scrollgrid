@@ -13,28 +13,23 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-namespace ca
-{
-namespace scrollgrid
-{
+namespace ca { namespace scrollgrid {
 
 template<typename Scalar>
 class Ray2 {
  public:
-  typedef Eigen::Matrix<Scalar, 3, 1> Vec2;
+  typedef Eigen::Matrix<Scalar, 2, 1> Vec2;
 
  public:
   /**
    * @param origin: origin of ray
    * @param direction: *unit* direction of ray
    *
-   * if you want to use origin/endpoint
-   * Ray3(origin, (endpoint-origin).normalized());
    */
   Ray2(const Vec2& origin,
        const Vec2& direction) :
          origin(origin),
-         direction(direction),
+         direction(direction.normalized()),
          tmin(Scalar(0)),
          tmax(std::numeric_limits<Scalar>::max()),
          invdir(Scalar(1.) / direction.array()),
@@ -66,13 +61,11 @@ class Ray3 {
    * @param origin: origin of ray
    * @param direction: *unit* direction of ray
    *
-   * if you want to use origin/endpoint
-   * Ray3(origin, (endpoint-origin).normalized());
    */
   Ray3(const Vec3& origin,
        const Vec3& direction) :
          origin(origin),
-         direction(direction),
+         direction(direction.normalized()),
          tmin(Scalar(0)),
          tmax(std::numeric_limits<Scalar>::max()),
          invdir(Scalar(1.) / direction.array()),
@@ -95,6 +88,8 @@ class Ray3 {
 
 };
 
-}
-} /* ca */
+typedef Ray2<float> Ray2f;
+typedef Ray3<float> Ray3f;
+
+} } /* ca */
 #endif /* end of include guard: RAY_HPP_TVFS3AKQ */

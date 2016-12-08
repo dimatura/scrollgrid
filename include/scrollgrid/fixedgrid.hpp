@@ -128,7 +128,7 @@ public:
   }
 
 
-  Eigen::VectorXi multiple_is_inside_box(const MatS& pts) {
+  Eigen::VectorXi multi_is_inside_box(const MatS& pts) {
     Eigen::VectorXi out(pts.cols());
     for (int i=0; i < pts.cols(); ++i) {
       const Eigen::Matrix<Scalar, Dim, 1>& pt(pts.col(i));
@@ -161,7 +161,7 @@ public:
     return w;
   }
 
-  MatS multiple_grid_to_world(const MatIx& grid_indices) {
+  MatS multi_grid_to_world(const MatIx& grid_indices) {
     MatS out(Dim, grid_indices.cols());
     for (int ix=0; ix < grid_indices.cols(); ++ix) {
       VecIx gix(grid_indices.col(ix));
@@ -179,7 +179,7 @@ public:
   }
 
 
-  MemIxVector multiple_grid_to_mem(const MatIx& grid_indices) {
+  MemIxVector multi_grid_to_mem(const MatIx& grid_indices) {
     MemIxVector out(grid_indices.cols());
     for (int ix=0; ix < grid_indices.cols(); ++ix) {
       VecIx gix(grid_indices.col(ix));

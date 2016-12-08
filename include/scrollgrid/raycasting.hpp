@@ -9,6 +9,7 @@
 #define RAYCASTING_HPP_OLVFBMND
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <pcl_util/point_types.hpp>
 
@@ -26,7 +27,7 @@ namespace ca
  * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
  * tmin and tmax are updated in place
  */
-template<typename Scalar>
+template <typename Scalar>
 bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
                         ca::scrollgrid::Ray3<Scalar> &r) {
   Scalar tmin = (box.bound(   std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
@@ -56,7 +57,7 @@ bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 3>& box,
  * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
  * tmin and tmax are updated in place
  */
-template<typename Scalar>
+template <typename Scalar>
 bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 2>& box,
                         ca::scrollgrid::Ray2<Scalar> &r) {
   Scalar tmin = (box.bound(   std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
@@ -74,111 +75,202 @@ bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 2>& box,
   return true;
 }
 
+/**
+ * outcode for cohen-sutherland
+ */
+template <typename Scalar>
+uint32_t compute_outcode2(Eigen::Matrix<Scalar, 2, 1>& pt,
+                          const ca::scrollgrid::Box<Scalar, 2>& box) {
+  uint32_t code = 0;
+
+  Scalar min_x(box.min_pt().x());
+  Scalar max_x(box.max_pt().x());
+  Scalar min_y(box.min_pt().y());
+  Scalar max_y(box.max_pt().y());
+
+  // TODO branchless
+  if (pt.y() >= max_y) {
+    code |= 1; //top
+  } else if (pt.y() < min_y) {
+    code |= 2; //bottom
+  }
+  if (pt.x() >= max_x) {
+    code |= 4; //right
+  } else if (pt.x() < min_x) {
+    code |= 8; //left
+  }
+  return code;
+}
+
+/**
+ *  be changed in place.
+ */
+template <typename Scalar>
+bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
+                const Eigen::Matrix<Scalar, 2, 1>& pt2,
+                const ca::scrollgrid::Box<Scalar, 2>& box,
+                Eigen::Matrix<Scalar, 2, 1>& out_pt1,
+                Eigen::Matrix<Scalar, 2, 1>& out_pt2) {
+
+  bool accept = false;
+  bool done = false;
+
+  uint32_t code1 = compute_outcode2(pt1, box);
+  uint32_t code2 = compute_outcode2(pt2, box);
+  uint32_t codeout;
+
+  Scalar x1(pt1.x());
+  Scalar x2(pt2.x());
+  Scalar y1(pt1.y());
+  Scalar y2(pt2.y());
+  Scalar min_x(box.min_pt().x());
+  Scalar max_x(box.max_pt().x());
+  Scalar min_y(box.min_pt().y());
+  Scalar max_y(box.max_pt().y());
+
+  constexpr Scalar eps(1e-6);
+
+  do {
+    if (!(code1 | code2)) {
+      // accept because both endpoints are in screen or on the border, trivial accept
+      accept = done = 1;
+    } else if (code1 & code2) {
+      //the line isn't visible on screen, trivial reject
+      done = true;
+    } else {
+      //if no trivial reject or accept, continue the loop
+      Scalar x, y;
+      codeout = code1 ? code1 : code2;
+      if (codeout & 1) { // intersect top
+        x = x1 + (x2 - x1) * (max_y - y1) / (y2 - y1);
+        y = max_y - eps;
+      } else if (codeout & 2) { // intersect bottom
+        x = x1 + (x2 - x1) * -y1 / (y2 - y1);
+        y = min_y + eps;
+      } else if (codeout & 4) { // intersect right
+        y = y1 + (y2 - y1) * (max_x - x1) / (x2 - x1);
+        x = max_x - eps;
+      } else { // intersect left
+        y = y1 + (y2 - y1) * -x1 / (x2 - x1);
+        x = min_x + eps;
+      }
+    }
+  } while (!done);
+
+  if (accept) {
+    out_pt1.x() = x1;
+    out_pt2.x() = x2;
+    out_pt1.y() = y1;
+    out_pt2.y() = y2;
+    return true;
+  }
+
+  out_pt1.setZero();
+  out_pt2.setZero();
+
+  return false;
+}
 
 class Bresenham2Iterator {
 public:
   Bresenham2Iterator(const Vec2Ix& start_pos,
                      const Vec2Ix& end_pos) :
-      _x0(start_pos.x()),
-      _y0(start_pos.y()),
-      _x1(end_pos.x()),
-      _y1(end_pos.y()),
-      _x(start_pos.x()),
-      _y(start_pos.y()),
-      _sx(0),
-      _sy(0),
-      _ax(0),
-      _ay(0)
+      x0_(start_pos.x()),
+      y0_(start_pos.y()),
+      x1_(end_pos.x()),
+      y1_(end_pos.y()),
+      x_(start_pos.x()),
+      y_(start_pos.y()),
+      sx_(0),
+      sy_(0),
+      ax_(0),
+      ay_(0)
   {
     this->init();
   }
 
   void init() {
-    _x = _x0;
-    _y = _y0;
+    x_ = x0_;
+    y_ = y0_;
 
-    _dx = _x1 - _x0;
-    _dy = _y1 - _y0;
+    dx_ = x1_ - x0_;
+    dy_ = y1_ - y0_;
 
     //X
-    if (_dx>0) {
-      _sx = 1;
-    } else if (_dx<0) {
-      _sx = -1;
-      _dx = -_dx;
+    if (dx_>0) {
+      sx_ = 1;
+    } else if (dx_<0) {
+      sx_ = -1;
+      dx_ = -dx_;
     } else {
-      _sx = 0;
+      sx_ = 0;
     }
 
     //Y
-    if (_dy>0) {
-      _sy = 1;
-    } else if (_dy<0) {
-      _sy = -1;
-      _dy = -_dy;
+    if (dy_>0) {
+      sy_ = 1;
+    } else if (dy_<0) {
+      sy_ = -1;
+      dy_ = -dy_;
     } else {
-      _sy = 0;
+      sy_ = 0;
     }
 
-    _ax = 2*_dx;
-    _ay = 2*_dy;
+    ax_ = 2*dx_;
+    ay_ = 2*dy_;
 
-    if (_dy <= _dx) {
-      _decy = _ay-_dx;
+    if (dy_ <= dx_) {
+      decy_ = ay_-dx_;
     } else {
-      _decx = _ax-_dy;
+      decx_ = ax_-dy_;
     }
 
-    _done = false;
+    done_ = false;
   }
 
   void step() {
-    if (_dy <= _dx){
-      if (_x == _x1) {
-        // hit
-        _done = true;
+    if (dy_ <= dx_){
+      if (done_) {
         return;
-      } else {
-        // pass
       }
-      if (_decy >= 0) {
-        _decy -= _ax;
-        _y += _sy;
+      if (decy_ >= 0) {
+        decy_ -= ax_;
+        y_ += sy_;
       }
-      _x += _sx;
-      _decy += _ay;
+      x_ += sx_;
+      decy_ += ay_;
     } else {
-      if (_y == _y1) {
-        // hit
-        _done = true;
+      if (done_) {
         return;
-      } else {
-        // pass
       }
-
-      if (_decx >= 0) {
-        _decx -= _ay;
-        _x += _sx;
+      if (decx_ >= 0) {
+        decx_ -= ay_;
+        x_ += sx_;
       }
-      _y += _sy;
-      _decx += _ax;
+      y_ += sy_;
+      decx_ += ax_;
     }
+
+    if (x_ == x1_ || y_ == y1_) {
+      done_ = true;
+    }
+
   }
 
   int i() const {
-    return _x;
+    return x_;
   }
 
   int j() const {
-    return _y;
+    return y_;
   }
 
   Vec2Ix pos() const {
-    return Vec2Ix(_x, _y);
+    return Vec2Ix(x_, y_);
   }
 
   bool done() const {
-    return _done;
+    return done_;
   }
 
   virtual ~Bresenham2Iterator() { }
@@ -186,154 +278,153 @@ public:
   Bresenham2Iterator& operator=(const Bresenham2Iterator& other) = delete;
 
 private:
-  int _x0, _y0;
-  int _x1, _y1;
-  int _x, _y;
-  int _sx, _sy;
-  int _ax, _ay;
-  int _dx, _dy;
-  int _decx, _decy;
-  bool _done;
+  int x0_, y0_;
+  int x1_, y1_;
+  int x_, y_;
+  int sx_, sy_;
+  int ax_, ay_;
+  int dx_, dy_;
+  int decx_, decy_;
+  bool done_;
 };
 
 class Bresenham3Iterator {
 public:
   Bresenham3Iterator(const Vec3Ix& start_pos,
                      const Vec3Ix& end_pos) :
-      _x0(start_pos.x()),
-      _y0(start_pos.y()),
-      _z0(start_pos.z()),
-      _x1(end_pos.x()),
-      _y1(end_pos.y()),
-      _z1(end_pos.z())
+      x0_(start_pos.x()),
+      y0_(start_pos.y()),
+      z0_(start_pos.z()),
+      x1_(end_pos.x()),
+      y1_(end_pos.y()),
+      z1_(end_pos.z())
   {
     this->init();
   }
 
   void init() {
-    _x = _x0;
-    _y = _y0;
-    _z = _z0;
-    _dx = _x1 - _x0,
-    _dy = _y1 - _y0,
-    _dz = _z1 - _z0;
+    x_ = x0_;
+    y_ = y0_;
+    z_ = z0_;
+    dx_ = x1_ - x0_,
+    dy_ = y1_ - y0_,
+    dz_ = z1_ - z0_;
 
-    //_x
-    if (_dx > 0) {
-      _sx = 1;
-    } else if (_dx < 0) {
-      _sx = -1;
-      _dx = -_dx;
+    //x_
+    if (dx_ > 0) {
+      sx_ = 1;
+    } else if (dx_ < 0) {
+      sx_ = -1;
+      dx_ = -dx_;
     } else {
-      _sx = 0;
+      sx_ = 0;
     }
 
-    //_y
-    if (_dy > 0) {
-      _sy = 1;
-    } else if (_dy < 0) {
-      _sy = -1;
-      _dy = -_dy;
+    //y_
+    if (dy_ > 0) {
+      sy_ = 1;
+    } else if (dy_ < 0) {
+      sy_ = -1;
+      dy_ = -dy_;
     } else {
-      _sy = 0;
+      sy_ = 0;
     }
 
-    //_z
-    if (_dz > 0) {
-      _sz = 1;
-    } else if (_dz < 0) {
-      _sz = -1;
-      _dz = -_dz;
+    //z_
+    if (dz_ > 0) {
+      sz_ = 1;
+    } else if (dz_ < 0) {
+      sz_ = -1;
+      dz_ = -dz_;
     } else {
-      _sz = 0;
+      sz_ = 0;
     }
 
-    _ax = 2*_dx;
-    _ay = 2*_dy;
-    _az = 2*_dz;
+    ax_ = 2*dx_;
+    ay_ = 2*dy_;
+    az_ = 2*dz_;
 
-    if ((_dy <= _dx) && (_dz <= _dx)) {
-      _decy = _ay-_dx;
-      _decz = _az-_dx;
-    } else if ((_dx <= _dy) && (_dz <= _dy)) {
-      _decx = _ax-_dy;
-      _decz = _az-_dy;
-    } else if ((_dx <= _dz) && (_dy <= _dz)) {
-      _decx = _ax-_dz;
-      _decy = _ay-_dz;
+    if ((dy_ <= dx_) && (dz_ <= dx_)) {
+      decy_ = ay_-dx_;
+      decz_ = az_-dx_;
+    } else if ((dx_ <= dy_) && (dz_ <= dy_)) {
+      decx_ = ax_-dy_;
+      decz_ = az_-dy_;
+    } else if ((dx_ <= dz_) && (dy_ <= dz_)) {
+      decx_ = ax_-dz_;
+      decy_ = ay_-dz_;
     }
   }
 
   void step() {
-    if ((_dy <= _dx) && (_dz <= _dx)) {
-      if (_x == _x0) {
-        _done = true;
-      } else {
-        // pass
-      }
-
-      if (_decy >= 0) {
-        _decy -= _ax;
-        _y += _sy;
-      }
-      if (_decz >= 0) {
-        _decz -= _ax;
-        _z += _sz;
-      }
-
-      _x += _sx; _decy += _ay; _decz += _az;
-    } else if ((_dx <= _dy) && (_dz <= _dy)) {
-      if (_y == _y1) {
-        _done = true;
+    if ((dy_ <= dx_) && (dz_ <= dx_)) {
+      if (done_) {
         return;
       }
-      if (_decx >= 0) {
-        _decx -= _ay;
-        _x += _sx;
+      if (decy_ >= 0) {
+        decy_ -= ax_;
+        y_ += sy_;
       }
-      if (_decz >= 0) {
-        _decz -= _ay;
-        _z += _sz;
+      if (decz_ >= 0) {
+        decz_ -= ax_;
+        z_ += sz_;
       }
-      _y += _sy; _decx += _ax; _decz += _az;
 
-    } else if ((_dx <= _dz) && (_dy <= _dz)) {
-      //Bresenham step
-      if (_z == _z1) {
-        _done = true;
+      x_ += sx_; decy_ += ay_; decz_ += az_;
+    } else if ((dx_ <= dy_) && (dz_ <= dy_)) {
+      if (done_) {
         return;
       }
-      if (_decx >= 0) {
-        _decx -= _az;
-        _x += _sx;
+      if (decx_ >= 0) {
+        decx_ -= ay_;
+        x_ += sx_;
       }
-      if (_decy >= 0) {
-        _decy -= _az;
-        _y += _sy;
+      if (decz_ >= 0) {
+        decz_ -= ay_;
+        z_ += sz_;
       }
-      _z += _sz; _decx += _ax; _decy += _ay;
+      y_ += sy_; decx_ += ax_; decz_ += az_;
+
+    } else if ((dx_ <= dz_) && (dy_ <= dz_)) {
+      if (done_) {
+        return;
+      }
+      if (decx_ >= 0) {
+        decx_ -= az_;
+        x_ += sx_;
+      }
+      if (decy_ >= 0) {
+        decy_ -= az_;
+        y_ += sy_;
+      }
+      z_ += sz_; decx_ += ax_; decy_ += ay_;
     }
+
+    if (x_ == x1_ || y_ == y1_ || z_ == z1_) {
+      done_ = true;
+    }
+
   }
 
   bool done() {
-    return _done;
+    return done_;
   }
 
-  Vec3Ix pos() { return Vec3Ix(_x, _y, _z); }
+  Vec3Ix pos() { return Vec3Ix(x_, y_, z_); }
 
   virtual ~Bresenham3Iterator() { }
   Bresenham3Iterator(const Bresenham3Iterator& other) = delete;
   Bresenham3Iterator& operator=(const Bresenham3Iterator& other) = delete;
 
 private:
-  int _x0, _y0, _z0;
-  int _x1, _y1, _z1;
-  int _x, _y, _z;
-  int _sx, _sy, _sz;
-  int _ax, _ay, _az;
-  int _dx, _dy, _dz;
-  int _decx, _decy, _decz;
-  bool _done;
+  int x0_, y0_, z0_;
+  int x1_, y1_, z1_;
+  int x_, y_, z_;
+  int sx_, sy_, sz_;
+  int ax_, ay_, az_;
+  int dx_, dy_, dz_;
+  int decx_, decy_, decz_;
+  bool done_;
 };
 
 /**
