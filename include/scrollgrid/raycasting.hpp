@@ -18,6 +18,8 @@
 #include "scrollgrid/ray.hpp"
 #include "scrollgrid/scrollgrid3.hpp"
 
+#include <ros/ros.h>
+
 namespace ca
 {
 
@@ -75,36 +77,74 @@ bool aabb_ray_intersect(const ca::scrollgrid::Box<Scalar, 2>& box,
   return true;
 }
 
+enum class OutcodeSide : int {
+  left = (1 << 0),
+  right = (1 << 1),
+  bottom = (1 << 2),
+  top = (1 << 3),
+  near = (1 << 4),
+  far = (1 << 5)
+};
+
+
 /**
  * outcode for cohen-sutherland
  */
 template <typename Scalar>
-uint32_t compute_outcode2(Eigen::Matrix<Scalar, 2, 1>& pt,
-                          const ca::scrollgrid::Box<Scalar, 2>& box) {
-  uint32_t code = 0;
+int compute_outcode2(const Eigen::Matrix<Scalar, 2, 1>& pt,
+                     const ca::scrollgrid::Box<Scalar, 2>& box) {
 
   Scalar min_x(box.min_pt().x());
   Scalar max_x(box.max_pt().x());
   Scalar min_y(box.min_pt().y());
   Scalar max_y(box.max_pt().y());
 
-  // TODO branchless
-  if (pt.y() >= max_y) {
-    code |= 1; //top
-  } else if (pt.y() < min_y) {
-    code |= 2; //bottom
-  }
-  if (pt.x() >= max_x) {
-    code |= 4; //right
-  } else if (pt.x() < min_x) {
-    code |= 8; //left
-  }
+  int code = 0;
+  code |= (pt.x() > max_x)*static_cast<int>(OutcodeSide::right);
+  code |= (pt.x() < min_x)*static_cast<int>(OutcodeSide::left);
+  code |= (pt.y() > max_y)*static_cast<int>(OutcodeSide::top);
+  code |= (pt.y() < min_y)*static_cast<int>(OutcodeSide::bottom);
+
   return code;
 }
 
 /**
- *  be changed in place.
+ * outcode for cohen-sutherland 3d
  */
+template <typename Scalar>
+int compute_outcode3(const Eigen::Matrix<Scalar, 3, 1>& pt,
+                     const ca::scrollgrid::Box<Scalar, 3>& box) {
+
+  Scalar min_x(box.min_pt().x());
+  Scalar max_x(box.max_pt().x());
+  Scalar min_y(box.min_pt().y());
+  Scalar max_y(box.max_pt().y());
+  Scalar min_z(box.min_pt().z());
+  Scalar max_z(box.max_pt().z());
+
+  int code = 0;
+  code |= (pt.x() > max_x)*static_cast<int>(OutcodeSide::right);
+  code |= (pt.x() < min_x)*static_cast<int>(OutcodeSide::left);
+  code |= (pt.y() > max_y)*static_cast<int>(OutcodeSide::top);
+  code |= (pt.y() < min_y)*static_cast<int>(OutcodeSide::bottom);
+  code |= (pt.z() > max_z)*static_cast<int>(OutcodeSide::far);
+  code |= (pt.z() < min_z)*static_cast<int>(OutcodeSide::near);
+
+  return code;
+}
+
+
+#if 0
+template <typename Scalar>
+struct ClipLineEps { };
+template <>
+struct ClipLineEps<float> { static constexpr float value = 1e-6; };
+template <>
+struct ClipLineEps<double> { static constexpr double value = 1e-6; };
+template <>
+struct ClipLineEps<grid_ix_t> { static constexpr grid_ix_t value = 1; };
+#endif
+
 template <typename Scalar>
 bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
                 const Eigen::Matrix<Scalar, 2, 1>& pt2,
@@ -115,9 +155,7 @@ bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
   bool accept = false;
   bool done = false;
 
-  uint32_t code1 = compute_outcode2(pt1, box);
-  uint32_t code2 = compute_outcode2(pt2, box);
-  uint32_t codeout;
+  int codeout;
 
   Scalar x1(pt1.x());
   Scalar x2(pt2.x());
@@ -128,12 +166,17 @@ bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
   Scalar min_y(box.min_pt().y());
   Scalar max_y(box.max_pt().y());
 
-  constexpr Scalar eps(1e-6);
+  int code1 = compute_outcode2({x1, y1}, box);
+  int code2 = compute_outcode2({x2, y2}, box);
+
+  //constexpr Scalar eps = ClipLineEps<Scalar>::value;
+
+  int ctr = 0;
 
   do {
     if (!(code1 | code2)) {
       // accept because both endpoints are in screen or on the border, trivial accept
-      accept = done = 1;
+      accept = done = true;
     } else if (code1 & code2) {
       //the line isn't visible on screen, trivial reject
       done = true;
@@ -141,19 +184,35 @@ bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
       //if no trivial reject or accept, continue the loop
       Scalar x, y;
       codeout = code1 ? code1 : code2;
-      if (codeout & 1) { // intersect top
+      if (codeout & static_cast<int>(OutcodeSide::top)) {
         x = x1 + (x2 - x1) * (max_y - y1) / (y2 - y1);
-        y = max_y - eps;
-      } else if (codeout & 2) { // intersect bottom
-        x = x1 + (x2 - x1) * -y1 / (y2 - y1);
-        y = min_y + eps;
-      } else if (codeout & 4) { // intersect right
+        y = max_y;
+      } else if (codeout & static_cast<int>(OutcodeSide::bottom)) {
+        x = x1 + (x2 - x1) * (min_y -y1) / (y2 - y1);
+        y = min_y;
+      } else if (codeout & static_cast<int>(OutcodeSide::right)) {
         y = y1 + (y2 - y1) * (max_x - x1) / (x2 - x1);
-        x = max_x - eps;
+        x = max_x;
       } else { // intersect left
-        y = y1 + (y2 - y1) * -x1 / (x2 - x1);
-        x = min_x + eps;
+        y = y1 + (y2 - y1) * (min_x - x1) / (x2 - x1);
+        x = min_x;
       }
+
+      if (codeout == code1) { //first endpoint was clipped
+        x1 = x;
+        y1 = y;
+        code1 = compute_outcode2({x1, y1}, box);
+      } else { //second endpoint was clipped
+        x2 = x;
+        y2 = y;
+        code2 = compute_outcode2({x2, y2}, box);
+      }
+    }
+
+    ++ctr;
+    if (ctr > 4) {
+      ROS_FATAL("clipping failed");
+      break;
     }
   } while (!done);
 
@@ -162,6 +221,124 @@ bool clip_line2(const Eigen::Matrix<Scalar, 2, 1>& pt1,
     out_pt2.x() = x2;
     out_pt1.y() = y1;
     out_pt2.y() = y2;
+    return true;
+  }
+
+  out_pt1.setZero();
+  out_pt2.setZero();
+
+  return false;
+}
+
+template <typename Scalar>
+bool clip_line3(const Eigen::Matrix<Scalar, 3, 1>& pt1,
+                const Eigen::Matrix<Scalar, 3, 1>& pt2,
+                const ca::scrollgrid::Box<Scalar, 3>& box,
+                Eigen::Matrix<Scalar, 3, 1>& out_pt1,
+                Eigen::Matrix<Scalar, 3, 1>& out_pt2) {
+
+  bool accept = false;
+  bool done = false;
+
+  int codeout;
+
+  Scalar x1(pt1.x());
+  Scalar x2(pt2.x());
+  Scalar y1(pt1.y());
+  Scalar y2(pt2.y());
+  Scalar z1(pt1.z());
+  Scalar z2(pt2.z());
+  Scalar min_x(box.min_pt().x());
+  Scalar max_x(box.max_pt().x());
+  Scalar min_y(box.min_pt().y());
+  Scalar max_y(box.max_pt().y());
+  Scalar min_z(box.min_pt().z());
+  Scalar max_z(box.max_pt().z());
+
+  int code1 = compute_outcode3({x1, y1, z1}, box);
+  int code2 = compute_outcode3({x2, y2, z2}, box);
+
+  //constexpr Scalar eps = ClipLineEps<Scalar>::value;
+
+  int ctr = 0;
+
+  do {
+    if (!(code1 | code2)) {
+      // accept because both endpoints are in screen or on the border, trivial accept
+      accept = done = true;
+    } else if (code1 & code2) {
+      //the line isn't visible on screen, trivial reject
+      done = true;
+    } else {
+      //if no trivial reject or accept, continue the loop
+      Scalar x, y, z;
+      codeout = code1 ? code1 : code2;
+      if (codeout & static_cast<int>(OutcodeSide::top)) {
+        Scalar t = (max_y - y1) / (y2 - y1);
+        x = x1 + t*(x2 - x1);
+        y = max_y;
+        z = z1 + t*(z2 - z1);
+      } else if (codeout & static_cast<int>(OutcodeSide::bottom)) {
+        Scalar t = (min_y - y1) / (y2 - y1);
+        x = x1 + t*(x2 - x1);
+        y = min_y;
+        z = z1 + t*(z2 - z1);
+      } else if (codeout & static_cast<int>(OutcodeSide::right)) {
+        Scalar t = (max_x - x1) / (x2 - x1);
+        x = max_x;
+        y = y1 + t*(y2 - y1);
+        z = z1 + t*(z2 - z1);
+      } else if (codeout & static_cast<int>(OutcodeSide::left)) {
+        // TODO is this better than just doing it vectorially
+        Scalar t = (min_x - x1) / (x2 - x1);
+        x = min_x;
+        y = y1 + t*(y2 - y1);
+        z = z1 + t*(z2 - z1);
+      } else if (codeout & static_cast<int>(OutcodeSide::near)) {
+        Scalar t = (max_z - z1) / (z2 - z1);
+        x = x1 + t*(x2 - x1);
+        y = y1 + t*(y2 - y1);
+        z = max_z;
+      } else if (codeout & static_cast<int>(OutcodeSide::far)) {
+        Scalar t = (min_z - z1) / (z2 - z1);
+        x = x1 + t*(x2 - x1);
+        y = y1 + t*(y2 - y1);
+        z = min_z;
+      } else {
+        ROS_FATAL("bad outcode");
+        ROS_ASSERT(false);
+      }
+
+      if (codeout == code1) {
+        // first endpoint was clipped
+        x1 = x;
+        y1 = y;
+        z1 = z;
+        code1 = compute_outcode3({x1, y1, z1}, box);
+      } else {
+        // second endpoint was clipped
+        x2 = x;
+        y2 = y;
+        z2 = z;
+        code2 = compute_outcode3({x2, y2, z2}, box);
+      }
+    }
+
+    ++ctr;
+    if (ctr > 6) {
+      ROS_FATAL("clipping failed");
+      ROS_ASSERT(false);
+      break;
+    }
+  } while (!done);
+
+  if (accept) {
+    out_pt1.x() = x1;
+    out_pt2.x() = x2;
+    out_pt1.y() = y1;
+    out_pt2.y() = y2;
+    out_pt1.z() = z1;
+    out_pt2.z() = z2;
     return true;
   }
 
