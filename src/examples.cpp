@@ -29,6 +29,44 @@
 
 #include "scrollgrid/fixedgrid.hpp"
 
+#include "scrollgrid/fixedoccmap2.hpp"
+
+int main(int argc, char *argv[]) {
+
+  namespace csg = ca::scrollgrid;
+
+#if 0
+  ca::Vec2Ix dims2(28, 28);
+  csg::OccMapUpdates<float, 2> omuf2;
+  omuf2.init(dims2);
+
+  ca::Vec3Ix dims3(28, 28, 28);
+  csg::OccMapUpdates<float, 3> omuf3;
+  omuf3.init(dims3);
+
+  csg::HitPassMapUpdates<float, 2> hpmuf2;
+  hpmuf2.init(dims2);
+
+  csg::HitPassMapUpdates<float, 3> hpmuf3;
+  hpmuf3.init(dims3);
+#endif
+
+  //OccMap<HitPassCore, float, 2> hpm2;
+
+  csg::CellUpdater<ca::HitPass> hp_up;
+  csg::CellUpdater<ca::BinaryOccupancy<float>> binf_up;
+
+  ca::HitPass cell;
+  hp_up.init(cell);
+  hp_up.update_pos(cell);
+
+
+  csg::OccMap<ca::HitPass, 2> hpmap;
+
+  return 0;
+}
+
+#if 0
 /**
  * I think I defined one already somewhere but forgot where
  */
@@ -160,3 +198,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+#endif

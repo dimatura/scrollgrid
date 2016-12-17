@@ -32,6 +32,16 @@ typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 2, Eigen::RowMajor> Mat2Ix;
 typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 3, Eigen::RowMajor> Mat3Ix;
 typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 4, Eigen::RowMajor> Mat4Ix;
 
+struct HitPass {
+  int hits = 0;
+  int passes = 0;
+};
+
+template <class T>
+struct BinaryOccupancy {
+  T val;
+};
+
 } /* ca */
 
 #endif /* end of include guard: GRID_TYPES_HPP_HJ46RUAT */

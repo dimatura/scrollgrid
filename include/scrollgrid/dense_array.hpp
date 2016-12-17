@@ -24,8 +24,7 @@
 
 #include "scrollgrid/grid_types.hpp"
 
-namespace ca
-{
+namespace ca {
 
 /**
  * A dense ND array.
@@ -251,6 +250,6 @@ private:
 typedef DenseArray<float, 2> DenseArray2f;
 typedef DenseArray<float, 3> DenseArray3f;
 
-} /* ca */
+}/* ca */
 
 #endif /* end of include guard: DENSE_ARRAY_HPP_KYZBZH9N */
