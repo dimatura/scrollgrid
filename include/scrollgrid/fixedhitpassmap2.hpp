@@ -49,7 +49,7 @@ public:
     bool hit = false, intersects = false;
     ca::Vec2Ix start_grid_ix(ca::Vec2Ix::Zero());
     ca::Vec2Ix end_grid_ix(ca::Vec2Ix::Zero());
-    this->compute_start_end_grid_ix(xyf, originf, start_grid_ix, end_grid_ix, hit, intersects);
+    this->compute_start_end_grid_ix(originf, xyf, grid_.box(), start_grid_ix, end_grid_ix, hit, intersects);
 
     if (!intersects) {
       return;
@@ -65,10 +65,8 @@ public:
       }
       mem_ix_t mem_ix = grid_.grid_to_mem(ij);
       if (b2itr.done() && hit) {
-        //std::cerr << ij.transpose() << " hit " << std::endl;
         hits_[mem_ix] += 1;
       } else {
-        //std::cerr << ij.transpose() << " pass " << std::endl;
         passes_[mem_ix] += 1;
       }
     }
@@ -99,32 +97,6 @@ public:
   FixedGrid2f grid() const {
     return grid_;
   }
-
-private:
-
-  void compute_start_end_grid_ix(const Eigen::Vector2f& x,
-                                 const Eigen::Vector2f& origin,
-                                 ca::Vec2Ix& start_grid_ix,
-                                 ca::Vec2Ix& end_grid_ix,
-                                 bool& hit,
-                                 bool& intersects) {
-
-    // inter1 and inter2 are clipped versions of origin, x
-    Eigen::Vector2f inter1(Eigen::Vector2f::Zero());
-    Eigen::Vector2f inter2(Eigen::Vector2f::Zero());
-    intersects = ca::clip_line2(origin, x, grid_.box(), inter1, inter2);
-
-    if (!intersects) {
-      start_grid_ix.setZero();
-      end_grid_ix.setZero();
-      hit = false;
-    } else {
-      start_grid_ix = grid_.world_to_grid(inter1);
-      end_grid_ix = grid_.world_to_grid(inter2);
-      hit = grid_.is_inside_box(x);
-    }
-  }
-
 
 private:
   FixedGrid2f grid_;

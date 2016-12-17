@@ -18,6 +18,44 @@
  */
 namespace ca { namespace scrollgrid {
 
+static inline
+void compute_start_end_grid_ix(const Eigen::Vector2f& origin,
+                               const Eigen::Vector2f& x,
+                               const ca::FixedGrid2f& grid,
+                               ca::Vec2Ix& start_grid_ix,
+                               ca::Vec2Ix& end_grid_ix,
+                               bool& hit,
+                               bool& intersects) {
+
+  // inter1 and inter2 are clipped versions of origin, x
+  Eigen::Vector2f inter1(Eigen::Vector2f::Zero());
+  Eigen::Vector2f inter2(Eigen::Vector2f::Zero());
+  intersects = ca::clip_line2(origin, x, grid.box(), inter1, inter2);
+
+  if (!intersects) {
+    start_grid_ix.setZero();
+    end_grid_ix.setZero();
+    hit = false;
+  } else {
+    start_grid_ix = grid.world_to_grid(inter1);
+    end_grid_ix = grid.world_to_grid(inter2);
+    hit = grid.is_inside_box(x);
+  }
+}
+
+template<class OccMapT>
+void multi_update(OccMapT* occmap,
+                  const Eigen::Matrix2Xf& vp,
+                  const Eigen::Matrix2Xf& p) {
+  ROS_ASSERT(p.rows() == vp.rows());
+  for (int i=0; i < p.cols(); ++i) {
+    Eigen::Vector2f xyf(p.col(i));
+    Eigen::Vector2f originf(vp.col(i));
+    occmap->update(xyf, originf);
+  }
+}
+
+
 template<class T>
 class FixedOccMap2 {
 
@@ -42,81 +80,42 @@ public:
     occstats_.fill(OccMapConstants<T>::UNKNOWN);
   }
 
-  bool compute_start_end_grid_ix(const Eigen::Vector2f& xyf,
-                                 const Eigen::Vector2f& originf,
-                                 ca::Vec2Ix& start_grid_ix,
-                                 ca::Vec2Ix& end_grid_ix,
-                                 bool& hit) {
-    // a stupid little dance
-    const auto& box(grid_.box());
-    Ray2<float> ray(originf, (xyf-originf));
-    if (!ca::aabb_ray_intersect(box, ray)) {
-      // no intersection
-      return false;
-    }
-    Eigen::Vector2f start_ray(ray.point_at(ray.tmin+1e-6));
-    Eigen::Vector2f end_ray(ray.point_at(ray.tmax-1e-6));
-    if ((xyf-originf).norm() < (start_ray-originf).norm()) {
-      // ray ends before actually hitting box
-      return false;
-    }
-    // adjust segment endpoints
-    if (grid_.is_inside_box(originf)) {
-      start_ray = originf;
-    }
-
-    hit = false;
-    if (grid_.is_inside_box(xyf)) {
-      hit = true;
-      end_ray = xyf;
-    }
-
-    start_grid_ix = grid_.world_to_grid(start_ray);
-    end_grid_ix = grid_.world_to_grid(end_ray);
-
-    if (!grid_.is_inside_grid(end_grid_ix) ||
-        !grid_.is_inside_grid(start_grid_ix)) {
-      return false;
-    }
-    return true;
-  }
-
-  void update(const Eigen::Vector2f& xyf, const Eigen::Vector2f& originf) {
-
-    bool hit = false;
-    ca::Vec2Ix start_grid_ix;
-    ca::Vec2Ix end_grid_ix;
-    bool intersects = compute_start_end_grid_ix(xyf, originf, start_grid_ix, end_grid_ix, hit);
+  void update(const Eigen::Vector2f& originf, const Eigen::Vector2f& xyf) {
+    bool hit = false, intersects = false;
+    ca::Vec2Ix start_grid_ix(ca::Vec2Ix::Zero());
+    ca::Vec2Ix end_grid_ix(ca::Vec2Ix::Zero());
+    compute_start_end_grid_ix(originf,
+                              xyf,
+                              grid_,
+                              start_grid_ix,
+                              end_grid_ix,
+                              hit,
+                              intersects);
     if (!intersects) {
       return;
     }
 
     // TODO just hit at end of the ray
-    for (Bresenham2Iterator b2itr(start_grid_ix, end_grid_ix);
-         !b2itr.done();
-         b2itr.step()) {
-      Vec2Ix ij(b2itr.pos());
-      std::cout << "ij = " << ij << std::endl;
+    Bresenham2Iterator b2itr(start_grid_ix, end_grid_ix);
+    while (!b2itr.done()) {
+      b2itr.step();
+      ca::Vec2Ix ij(b2itr.pos());
+      if (!grid_.is_inside_grid(ij)) {
+        break;
+      }
       mem_ix_t mem_ix = grid_.grid_to_mem(ij);
-      T cur_val(occstats_[mem_ix]);
-      if (hit && b2itr.done()) {
-        occstats_[mem_ix] = OccMapConstants<T>::update_pos(cur_val);
+      T val = occstats_[mem_ix];
+      if (b2itr.done() && hit) {
+        occstats_[mem_ix] = OccMapConstants<T>::update_pos(val);
       } else {
-        occstats_[mem_ix] = OccMapConstants<T>::update_neg(cur_val);
+        occstats_[mem_ix] = OccMapConstants<T>::update_neg(val);
       }
     }
   }
 
-  void multi_update(const Eigen::Matrix2Xf& p, const Eigen::Matrix2Xf& vp) {
-    ROS_ASSERT(p.rows() == vp.rows());
-    const auto& box(grid_.box());
-    for (int i=0; i < p.cols(); ++i) {
-      Eigen::Vector2f xyf(p.col(i));
-      Eigen::Vector2f originf(vp.col(i));
-      this->update(xyf, originf);
-    }
+  void multi_update(const Eigen::Matrix2Xf& vp, const Eigen::Matrix2Xf& p) {
+    multi_update<FixedOccMap2>(this, vp, p);
   }
-
 
   //TODO memory ownership?
   ca::DenseArray<T, 2> get_array() const {
@@ -138,6 +137,8 @@ private:
 
 typedef FixedOccMap2<float> FixedOccMap2f;
 typedef FixedOccMap2<uint8_t> FixedOccMap2u;
+
+
 
 } }
 
