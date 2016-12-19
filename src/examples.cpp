@@ -5,43 +5,22 @@
  *
  */
 
-#if 0
-#include "scrollgrid/fixedgrid2.hpp"
-#include "scrollgrid/fixedgrid3.hpp"
-#endif
-
-#include "scrollgrid/scrollgrid2.hpp"
-#include "scrollgrid/scrollgrid3.hpp"
-
 #include "scrollgrid/dense_array.hpp"
-
-//#include "scrollgrid/dense_array2.hpp"
-//#include "scrollgrid/dense_array3.hpp"
-
-#include "scrollgrid/grid_util.hpp"
-
-#include "scrollgrid/scrolling_strategies.hpp"
-
 #include "scrollgrid/raycasting.hpp"
-
-//#include "scrollgrid/fixedoccmap2.hpp"
-//#include "scrollgrid/fixedoccmap3.hpp"
-
 #include "scrollgrid/fixedgrid.hpp"
-
-#include "scrollgrid/fixedoccmap2.hpp"
+#include "scrollgrid/fixedoccmap.hpp"
 
 int main(int argc, char *argv[]) {
 
   namespace csg = ca::scrollgrid;
-
 
   //csg::OccMap<ca::HitPass, csg::FixedGrid2f, csg::HitPassUpdater, 2> hpmap;
   //csg::OccMap<float, csg::FixedGrid2f, csg::BinaryFloatUpdater, 2> occmap;
   //ca::Vec2Ix dims(28, 28);
   //hpmap.init(dims);
 
-  csg::OccMap<ca::HitPass, csg::FixedGrid, ca::DenseArray, csg::HitPassUpdater, 2> hpmap;
+  csg::OccMap<ca::HitPass, csg::FixedGrid, ca::DenseArray, csg::HitPassUpdater, 2> hpmap2;
+  csg::OccMap<float, csg::FixedGrid, ca::DenseArray, csg::BinaryFloatUpdater, 2> occmap2;
 
   return 0;
 }

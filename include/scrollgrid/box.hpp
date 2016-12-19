@@ -8,6 +8,7 @@
 #ifndef BOX_HPP_4WFLKG9Q
 #define BOX_HPP_4WFLKG9Q
 
+
 #include <ros/ros.h>
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -32,9 +33,11 @@ enum class OutcodeSide : int {
 /**
  * Describes an axis-aligned volume in space.
  */
-template<typename Scalar, int Dim>
+template<typename ScalarT, int dim>
 class Box {
  public:
+  static constexpr int Dim = dim;
+  typedef ScalarT Scalar;
   typedef Eigen::Matrix<Scalar, Dim, 1> Vec;
 
  public:
@@ -147,20 +150,6 @@ class Box {
            bounds_.first.z() <= bounds_.second.z();
   }
 
-
- private:
-  Vec center_;
-  Vec radius_;
-  std::pair<Vec, Vec> bounds_;
-
-};
-
-
-template <class Scalar>
-class Box2 : public Box<Scalar, 2> {
-
- public:
-
   bool clip_line(const Eigen::Matrix<Scalar, 2, 1>& pt1,
                  const Eigen::Matrix<Scalar, 2, 1>& pt2,
                  Eigen::Matrix<Scalar, 2, 1>& out_pt1,
@@ -169,7 +158,7 @@ class Box2 : public Box<Scalar, 2> {
     bool accept = false;
     bool done = false;
 
-    int codeout;
+    int codeout(0);
 
     Scalar x1(pt1.x());
     Scalar x2(pt2.x());
@@ -242,60 +231,6 @@ class Box2 : public Box<Scalar, 2> {
     out_pt2.setZero();
 
     return false;
-  }
-
-
- private:
-  int compute_outcode(const Eigen::Matrix<Scalar, 2, 1>& pt) {
-
-    Scalar min_x(this->min_pt().x());
-    Scalar max_x(this->max_pt().x());
-    Scalar min_y(this->min_pt().y());
-    Scalar max_y(this->max_pt().y());
-
-    int code = 0;
-    code |= (pt.x() > max_x)*static_cast<int>(OutcodeSide::right);
-    code |= (pt.x() < min_x)*static_cast<int>(OutcodeSide::left);
-    code |= (pt.y() > max_y)*static_cast<int>(OutcodeSide::top);
-    code |= (pt.y() < min_y)*static_cast<int>(OutcodeSide::bottom);
-
-    return code;
-  }
-
-
-};
-
-
-template <class Scalar>
-class Box3 : public Box<Scalar, 3> {
-
- public:
-  /**
-   * Axis-aligned bounding box intersection test.
-   * Reference:
-   * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
-   * tmin and tmax are updated in place
-   */
-  bool aabb_ray_intersect(ca::scrollgrid::Ray3<Scalar> &r) {
-    Scalar tmin = (this->bound(   std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
-    Scalar tmax = (this->bound( 1-std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
-
-    Scalar tymin = (this->bound(  std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
-    Scalar tymax = (this->bound(1-std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
-
-    if ((tmin > tymax) || (tymin > tmax)) { return false; }
-    if (tymin > tmin) { tmin = tymin; }
-    if (tymax < tmax) { tmax = tymax; }
-
-    Scalar tzmin = (this->bound(  std::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
-    Scalar tzmax = (this->bound(1-std::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
-
-    if ((tmin > tzmax) || (tzmin > tmax)) { return false; }
-    if (tzmin > tmin) { tmin = tzmin; }
-    if (tzmax < tmax) { tmax = tzmax; }
-    if (tmin > r.tmin) { r.tmin = tmin; }
-    if (tmax < r.tmax) { r.tmax = tmax; }
-    return true;
   }
 
   bool clip_line(const Eigen::Matrix<Scalar, 3, 1>& pt1,
@@ -415,7 +350,53 @@ class Box3 : public Box<Scalar, 3> {
   }
 
 
+
+ /**
+   * Axis-aligned bounding box intersection test.
+   * Reference:
+   * An Efficient and Robust Ray–Box Intersection Algorithm, Williams et al. 2004
+   * tmin and tmax are updated in place
+   */
+  bool aabb_ray_intersect(ca::scrollgrid::Ray3<Scalar> &r) {
+    Scalar tmin = (this->bound(   std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
+    Scalar tmax = (this->bound( 1-std::get<0>(r.sign) ).x() - r.origin.x()) * r.invdir.x();
+
+    Scalar tymin = (this->bound(  std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
+    Scalar tymax = (this->bound(1-std::get<1>(r.sign) ).y() - r.origin.y()) * r.invdir.y();
+
+    if ((tmin > tymax) || (tymin > tmax)) { return false; }
+    if (tymin > tmin) { tmin = tymin; }
+    if (tymax < tmax) { tmax = tymax; }
+
+    Scalar tzmin = (this->bound(  std::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
+    Scalar tzmax = (this->bound(1-std::get<2>(r.sign)).z() - r.origin.z()) * r.invdir.z();
+
+    if ((tmin > tzmax) || (tzmin > tmax)) { return false; }
+    if (tzmin > tmin) { tmin = tzmin; }
+    if (tzmax < tmax) { tmax = tzmax; }
+    if (tmin > r.tmin) { r.tmin = tmin; }
+    if (tmax < r.tmax) { r.tmax = tmax; }
+    return true;
+  }
+
+
  private:
+  int compute_outcode(const Eigen::Matrix<Scalar, 2, 1>& pt) {
+
+    Scalar min_x(this->min_pt().x());
+    Scalar max_x(this->max_pt().x());
+    Scalar min_y(this->min_pt().y());
+    Scalar max_y(this->max_pt().y());
+
+    int code = 0;
+    code |= (pt.x() > max_x)*static_cast<int>(OutcodeSide::right);
+    code |= (pt.x() < min_x)*static_cast<int>(OutcodeSide::left);
+    code |= (pt.y() > max_y)*static_cast<int>(OutcodeSide::top);
+    code |= (pt.y() < min_y)*static_cast<int>(OutcodeSide::bottom);
+
+    return code;
+  }
+
   /**
    * outcode for cohen-sutherland 3d
    */
@@ -438,11 +419,16 @@ class Box3 : public Box<Scalar, 3> {
     return code;
   }
 
+
+ private:
+  Vec center_;
+  Vec radius_;
+  std::pair<Vec, Vec> bounds_;
+
 };
 
-
-typedef Box2<float> Box2f;
-typedef Box3<float> Box3f;
+typedef Box<float, 2> Box2f;
+typedef Box<float, 3> Box3f;
 
 } } /* ca */
 

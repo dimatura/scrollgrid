@@ -14,17 +14,20 @@
 #include <pcl_util/point_types.hpp>
 
 #include "scrollgrid/grid_types.hpp"
-#include "scrollgrid/box.hpp"
-#include "scrollgrid/ray.hpp"
-#include "scrollgrid/scrollgrid3.hpp"
 
 #include <ros/ros.h>
 
 namespace ca { namespace scrollgrid {
 
-class Bresenham2Iterator {
+
+template <int Dim>
+class BresenhamIterator {
+};
+
+template <>
+class BresenhamIterator<2> {
 public:
-  Bresenham2Iterator(const Vec2Ix& start_pos,
+  BresenhamIterator(const Vec2Ix& start_pos,
                      const Vec2Ix& end_pos) :
       x0_(start_pos.x()),
       y0_(start_pos.y()),
@@ -124,9 +127,9 @@ public:
     return done_;
   }
 
-  virtual ~Bresenham2Iterator() { }
-  Bresenham2Iterator(const Bresenham2Iterator& other) = delete;
-  Bresenham2Iterator& operator=(const Bresenham2Iterator& other) = delete;
+  virtual ~BresenhamIterator() { }
+  BresenhamIterator(const BresenhamIterator& other) = delete;
+  BresenhamIterator& operator=(const BresenhamIterator& other) = delete;
 
 private:
   int x0_, y0_;
@@ -139,10 +142,11 @@ private:
   bool done_;
 };
 
-class Bresenham3Iterator {
+template <>
+class BresenhamIterator<3> {
 public:
-  Bresenham3Iterator(const Vec3Ix& start_pos,
-                     const Vec3Ix& end_pos) :
+  BresenhamIterator(const Vec3Ix& start_pos,
+                    const Vec3Ix& end_pos) :
       x0_(start_pos.x()),
       y0_(start_pos.y()),
       z0_(start_pos.z()),
@@ -263,9 +267,9 @@ public:
 
   Vec3Ix pos() { return Vec3Ix(x_, y_, z_); }
 
-  virtual ~Bresenham3Iterator() { }
-  Bresenham3Iterator(const Bresenham3Iterator& other) = delete;
-  Bresenham3Iterator& operator=(const Bresenham3Iterator& other) = delete;
+  virtual ~BresenhamIterator() { }
+  BresenhamIterator(const BresenhamIterator& other) = delete;
+  BresenhamIterator& operator=(const BresenhamIterator& other) = delete;
 
 private:
   int x0_, y0_, z0_;

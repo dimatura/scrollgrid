@@ -28,11 +28,12 @@
 
 namespace ca { namespace scrollgrid {
 
-template<class Scalar, int Dim>
+template<class ScalarT, int DimP>
 class FixedGrid {
 public:
-  //enum { Dim = Dim_ };
-  typedef Scalar ScalarType;
+  typedef ScalarT Scalar;
+  static constexpr int Dim = DimP;
+
   typedef Eigen::Matrix<Scalar, Dim, 1> Vec;
   typedef Eigen::Matrix<Scalar, Dim, Eigen::Dynamic> MatS;
   typedef Eigen::Matrix<grid_ix_t, Dim, 1> VecIx;
