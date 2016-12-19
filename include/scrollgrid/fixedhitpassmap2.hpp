@@ -21,9 +21,6 @@ template<class T>
 class FixedHitPassMap2 {
 
 public:
-  typedef std::shared_ptr<FixedHitPassMap2> Ptr;
-
-public:
   FixedHitPassMap2(const FixedGrid2f& grid) {
     grid_ = grid;
     this->init();
@@ -49,7 +46,7 @@ public:
     bool hit = false, intersects = false;
     ca::Vec2Ix start_grid_ix(ca::Vec2Ix::Zero());
     ca::Vec2Ix end_grid_ix(ca::Vec2Ix::Zero());
-    this->compute_start_end_grid_ix(originf, xyf, grid_.box(), start_grid_ix, end_grid_ix, hit, intersects);
+    this->compute_start_end_grid_ix(originf, xyf, grid_, start_grid_ix, end_grid_ix, hit, intersects);
 
     if (!intersects) {
       return;

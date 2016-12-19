@@ -18,12 +18,7 @@
  */
 namespace ca { namespace scrollgrid {
 
-template <typename CellT>
-class CellUpdater {
-};
-
-template <>
-class CellUpdater<ca::HitPass> {
+class HitPassUpdater {
 public:
 
   static
@@ -44,8 +39,7 @@ public:
 };
 
 
-template <>
-class CellUpdater<ca::BinaryOccupancy<float>> {
+class BinaryFloatUpdater {
 public:
   static constexpr float UNKNOWN = 0.5f;
   static constexpr float OCCUPIED = 0.9f;
@@ -54,39 +48,50 @@ public:
   static constexpr float UPDATE_NEG = 0.01f;
 
 public:
-  typedef std::shared_ptr<ca::HitPass> Ptr;
 
   static
-  void init(ca::BinaryOccupancy<float>& cell) {
-    cell.val = UNKNOWN;
+  void init(float& cell) {
+    cell = UNKNOWN;
   }
 
   static
-  void update_pos(ca::BinaryOccupancy<float>& cell) {
-    float val = cell.val;
-    float new_val = std::min(val + UPDATE_POS, OCCUPIED);
-    cell.val = new_val;
+  void update_pos(float& cell) {
+    cell = std::min(cell + UPDATE_POS, OCCUPIED);
   }
 
   static
-  void update_neg(ca::BinaryOccupancy<float>& cell) {
-    float val = cell.val;
-    float new_val = std::max(val - UPDATE_NEG, FREE);
-    cell.val = new_val;
+  void update_neg(float& cell) {
+    cell = std::max(cell - UPDATE_NEG, FREE);
   }
 };
 
-template <typename CellT, int Dim>
+
+template <class CellT,
+          template <class, int> class GridT,
+          template <class, int> class StorageT,
+          class UpdaterT,
+          int Dim>
 class OccMap {
-};
+ public:
+  void init(const Eigen::Matrix<grid_ix_t, Dim, 1>& dims) {
+    storage_.reset(dims);
 
-template <typename CellT>
-class OccMap<CellT, 2> {
-public:
-  void compute_start_end_grid_ix(const Eigen::Vector2f& origin,
-                                 const Eigen::Vector2f& x,
-                                 ca::Vec2Ix& start_grid_ix,
-                                 ca::Vec2Ix& end_grid_ix,
+    CellT cell;
+    UpdaterT::init(cell);
+    storage_.fill(cell);
+  }
+
+  void reset() {
+    CellT cell;
+    UpdaterT::init(cell);
+    storage_.fill(cell);
+  }
+
+ private:
+  void compute_start_end_grid_ix(const Eigen::Matrix<float, Dim, 1>& origin,
+                                 const Eigen::Matrix<float, Dim, 1>& x,
+                                 Eigen::Matrix<grid_ix_t, Dim, 1>& start_grid_ix,
+                                 Eigen::Matrix<grid_ix_t, Dim, 1>& end_grid_ix,
                                  bool& hit,
                                  bool& intersects) {
 
@@ -106,6 +111,20 @@ public:
       hit = grid_.is_inside_box(x);
     }
   }
+
+
+
+ private:
+  GridT<float, Dim> grid_;
+  StorageT<CellT, Dim> storage_;
+
+};
+
+
+#if 0
+template <typename CellT, typename GridT, typename UpdaterT>
+class OccMap<CellT, GridT, UpdaterT, 2> {
+public:
 
   void update(const Eigen::Vector2f& originf,
               const Eigen::Vector2f& xyf) {
@@ -156,6 +175,7 @@ public:
   DenseArray<CellT, 2> storage_;
 
 };
+#endif
 
 
 #if 0
