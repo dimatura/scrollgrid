@@ -8,6 +8,7 @@
 #ifndef BOX_HPP_4WFLKG9Q
 #define BOX_HPP_4WFLKG9Q
 
+#include <type_traits>
 
 #include <ros/ros.h>
 #include <Eigen/Core>
@@ -37,6 +38,9 @@ template<typename ScalarT, int dim>
 class Box {
  public:
   static constexpr int Dim = dim;
+  typedef std::integral_constant<int, Dim> dim_t;
+  typedef std::integral_constant<int, 2> two_t;
+  typedef std::integral_constant<int, 3> three_t;
   typedef ScalarT Scalar;
   typedef Eigen::Matrix<Scalar, Dim, 1> Vec;
 
@@ -137,23 +141,12 @@ class Box {
            (v.array() <= bounds_.second.array()).all();
   }
 
- private:
-  // call after bounds change
-  void reset_center_radius() {
-    center_ = (bounds_.first+bounds_.second)/2;
-    radius_ = (bounds_.second-bounds_.first)/2;
-  }
-
-  bool check_bounds() {
-    return bounds_.first.x() <= bounds_.second.x() &&
-           bounds_.first.y() <= bounds_.second.y() &&
-           bounds_.first.z() <= bounds_.second.z();
-  }
-
   bool clip_line(const Eigen::Matrix<Scalar, 2, 1>& pt1,
                  const Eigen::Matrix<Scalar, 2, 1>& pt2,
                  Eigen::Matrix<Scalar, 2, 1>& out_pt1,
                  Eigen::Matrix<Scalar, 2, 1>& out_pt2) {
+
+    static_assert(std::is_same<dim_t, two_t>::value, "wrong dim on clip_line");
 
     bool accept = false;
     bool done = false;
@@ -169,8 +162,8 @@ class Box {
     Scalar min_y(this->min_pt().y());
     Scalar max_y(this->max_pt().y());
 
-    int code1 = this->compute_outcode({x1, y1});
-    int code2 = this->compute_outcode({x2, y2});
+    int code1 = this->compute_outcode({x1, y1}, dim_t());
+    int code2 = this->compute_outcode({x2, y2}, dim_t());
 
     //constexpr Scalar eps = ClipLineEps<Scalar>::value;
 
@@ -204,11 +197,11 @@ class Box {
         if (codeout == code1) { //first endpoint was clipped
           x1 = x;
           y1 = y;
-          code1 = this->compute_outcode({x1, y1});
+          code1 = this->compute_outcode({x1, y1}, dim_t());
         } else { //second endpoint was clipped
           x2 = x;
           y2 = y;
-          code2 = this->compute_outcode({x2, y2});
+          code2 = this->compute_outcode({x2, y2}, dim_t());
         }
       }
 
@@ -238,6 +231,8 @@ class Box {
                  Eigen::Matrix<Scalar, 3, 1>& out_pt1,
                  Eigen::Matrix<Scalar, 3, 1>& out_pt2) {
 
+    static_assert(std::is_same<dim_t, three_t>::value, "wrong dim on clip_line");
+
     bool accept = false;
     bool done = false;
 
@@ -256,8 +251,8 @@ class Box {
     Scalar min_z(this->min_pt().z());
     Scalar max_z(this->max_pt().z());
 
-    int code1 = this->compute_outcode({x1, y1, z1});
-    int code2 = this->compute_outcode({x2, y2, z2});
+    int code1 = this->compute_outcode({x1, y1, z1}, dim_t());
+    int code2 = this->compute_outcode({x2, y2, z2}, dim_t());
 
     //constexpr Scalar eps = ClipLineEps<Scalar>::value;
 
@@ -315,13 +310,13 @@ class Box {
           x1 = x;
           y1 = y;
           z1 = z;
-          code1 = this->compute_outcode({x1, y1, z1});
+          code1 = this->compute_outcode({x1, y1, z1}, dim_t());
         } else {
           // second endpoint was clipped
           x2 = x;
           y2 = y;
           z2 = z;
-          code2 = this->compute_outcode({x2, y2, z2});
+          code2 = this->compute_outcode({x2, y2, z2}, dim_t());
         }
       }
 
@@ -381,7 +376,20 @@ class Box {
 
 
  private:
-  int compute_outcode(const Eigen::Matrix<Scalar, 2, 1>& pt) {
+
+  // call after bounds change
+  void reset_center_radius() {
+    center_ = (bounds_.first+bounds_.second)/2;
+    radius_ = (bounds_.second-bounds_.first)/2;
+  }
+
+  bool check_bounds() {
+    return bounds_.first.x() <= bounds_.second.x() &&
+           bounds_.first.y() <= bounds_.second.y() &&
+           bounds_.first.z() <= bounds_.second.z();
+  }
+
+  int compute_outcode(const Eigen::Matrix<Scalar, 2, 1>& pt, two_t tag) {
 
     Scalar min_x(this->min_pt().x());
     Scalar max_x(this->max_pt().x());
@@ -400,7 +408,7 @@ class Box {
   /**
    * outcode for cohen-sutherland 3d
    */
-  int compute_outcode(const Eigen::Matrix<Scalar, 3, 1>& pt) {
+  int compute_outcode(const Eigen::Matrix<Scalar, 3, 1>& pt, three_t tag) {
     Scalar min_x(this->min_pt().x());
     Scalar max_x(this->max_pt().x());
     Scalar min_y(this->min_pt().y());
