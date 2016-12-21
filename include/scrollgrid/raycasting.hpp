@@ -28,7 +28,7 @@ template <>
 class BresenhamIterator<2> {
 public:
   BresenhamIterator(const Vec2Ix& start_pos,
-                     const Vec2Ix& end_pos) :
+                    const Vec2Ix& end_pos) :
       x0_(start_pos.x()),
       y0_(start_pos.y()),
       x1_(end_pos.x()),
@@ -83,10 +83,10 @@ public:
   }
 
   void step() {
+    if (done_) {
+      return;
+    }
     if (dy_ <= dx_){
-      if (done_) {
-        return;
-      }
       if (decy_ >= 0) {
         decy_ -= ax_;
         y_ += sy_;
@@ -94,9 +94,6 @@ public:
       x_ += sx_;
       decy_ += ay_;
     } else {
-      if (done_) {
-        return;
-      }
       if (decx_ >= 0) {
         decx_ -= ay_;
         x_ += sx_;
@@ -105,7 +102,7 @@ public:
       decx_ += ax_;
     }
 
-    if (x_ == x1_ || y_ == y1_) {
+    if (x_ == x1_ && y_ == y1_) {
       done_ = true;
     }
 
@@ -150,9 +147,18 @@ public:
       x0_(start_pos.x()),
       y0_(start_pos.y()),
       z0_(start_pos.z()),
+      x_(start_pos.x()),
+      y_(start_pos.y()),
+      z_(start_pos.z()),
       x1_(end_pos.x()),
       y1_(end_pos.y()),
-      z1_(end_pos.z())
+      z1_(end_pos.z()),
+      sx_(0),
+      sy_(0),
+      sz_(0),
+      ax_(0),
+      ay_(0),
+      az_(0)
   {
     this->init();
   }
@@ -209,13 +215,15 @@ public:
       decx_ = ax_-dz_;
       decy_ = ay_-dz_;
     }
+
+    done_ = false;
   }
 
   void step() {
+    if (done_) {
+      return;
+    }
     if ((dy_ <= dx_) && (dz_ <= dx_)) {
-      if (done_) {
-        return;
-      }
       if (decy_ >= 0) {
         decy_ -= ax_;
         y_ += sy_;
@@ -227,9 +235,6 @@ public:
 
       x_ += sx_; decy_ += ay_; decz_ += az_;
     } else if ((dx_ <= dy_) && (dz_ <= dy_)) {
-      if (done_) {
-        return;
-      }
       if (decx_ >= 0) {
         decx_ -= ay_;
         x_ += sx_;
@@ -238,12 +243,9 @@ public:
         decz_ -= ay_;
         z_ += sz_;
       }
-      y_ += sy_; decx_ += ax_; decz_ += az_;
 
+      y_ += sy_; decx_ += ax_; decz_ += az_;
     } else if ((dx_ <= dz_) && (dy_ <= dz_)) {
-      if (done_) {
-        return;
-      }
       if (decx_ >= 0) {
         decx_ -= az_;
         x_ += sx_;
@@ -252,10 +254,11 @@ public:
         decy_ -= az_;
         y_ += sy_;
       }
+
       z_ += sz_; decx_ += ax_; decy_ += ay_;
     }
 
-    if (x_ == x1_ || y_ == y1_ || z_ == z1_) {
+    if (x_ == x1_ && y_ == y1_ && z_ == z1_) {
       done_ = true;
     }
 
@@ -272,14 +275,14 @@ public:
   BresenhamIterator& operator=(const BresenhamIterator& other) = delete;
 
 private:
-  int x0_, y0_, z0_;
-  int x1_, y1_, z1_;
-  int x_, y_, z_;
-  int sx_, sy_, sz_;
-  int ax_, ay_, az_;
-  int dx_, dy_, dz_;
-  int decx_, decy_, decz_;
-  bool done_;
+  int x0_ = 0, y0_ = 0, z0_ = 0;
+  int x1_ = 0, y1_ = 0, z1_ = 0;
+  int x_ = 0, y_ = 0, z_ = 0;
+  int sx_ = 0, sy_ = 0, sz_ = 0;
+  int ax_ = 0, ay_ = 0, az_ = 0;
+  int dx_ = 0, dy_ = 0, dz_ = 0;
+  int decx_ = 0, decy_ = 0, decz_ = 0;
+  bool done_ = false;
 };
 
 

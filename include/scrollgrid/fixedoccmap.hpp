@@ -28,23 +28,26 @@ public:
 
   static
   void update_pos(ca::HitPassI4& cell) {
-    cell.hits += 1;
+    cell.hits = std::min(cell.hits+1, std::numeric_limits<int32_t>::max()-1);
   }
 
   static
   void update_neg(ca::HitPassI4& cell) {
-    cell.passes += 1;
+    cell.passes = std::min(cell.passes+1, std::numeric_limits<int32_t>::max()-1);
   }
 };
 
 
 class BinaryFloatUpdater {
 public:
-  static constexpr float UNKNOWN = 0.5f;
-  static constexpr float OCCUPIED = 0.9f;
-  static constexpr float FREE = 0.0f;
-  static constexpr float UPDATE_POS = 0.08f;
-  static constexpr float UPDATE_NEG = 0.01f;
+  // constants from octomap paper
+  // TODO: maybe constexpr log(x/(1.-x))
+  static constexpr float UNKNOWN = 0.0; // 0.5
+  static constexpr float OCCUPIED = 3.5; // 0.97
+  static constexpr float FREE = -2.; // 0.12
+  static constexpr float UPDATE_POS = 0.85; // 0.7
+  //static constexpr float UPDATE_NEG = -0.4; // 0.4
+  static constexpr float UPDATE_NEG = -0.8;
 
 public:
 
@@ -55,12 +58,14 @@ public:
 
   static
   void update_pos(float& cell) {
-    cell = std::min(cell + UPDATE_POS, OCCUPIED);
+    float new_val(cell + UPDATE_POS);
+    cell = std::min(new_val, OCCUPIED);
   }
 
   static
   void update_neg(float& cell) {
-    cell = std::max(cell - UPDATE_NEG, FREE);
+    float new_val(cell + UPDATE_NEG);
+    cell = std::max(new_val, FREE);
   }
 };
 
@@ -100,6 +105,7 @@ template <class CellT,
           int Dim>
 class OccMap {
  public:
+  typedef std::shared_ptr<OccMap> Ptr;
   typedef CellT CellType;
   typedef Eigen::Matrix<float, Dim, 1> Vecf;
   typedef Eigen::Matrix<float, Dim, Eigen::Dynamic> Matf;
@@ -140,32 +146,40 @@ class OccMap {
                                     end_grid_ix,
                                     hit,
                                     intersects);
-    if (!intersects) {
-      return;
+    if (!intersects) { return; }
+
+    //std::cerr << "originf = " << originf.transpose() << std::endl;
+    //std::cerr << "xyf = " << xyf.transpose() << std::endl;
+    //std::cerr << "start_grid_ix = " << start_grid_ix.transpose() << std::endl;
+    //std::cerr << "end_grid_ix = " << end_grid_ix.transpose() << std::endl;
+
+    if (hit) {
+      mem_ix_t mem_ix = grid_.grid_to_mem(end_grid_ix);
+      CellT& cell(storage_[mem_ix]);
+      UpdaterT::update_pos(cell);
     }
 
-    // TODO just hit at end of the ray
     BresenhamIterator<Dim> bitr(start_grid_ix, end_grid_ix);
-    while (!bitr.done()) {
+    do {
       bitr.step();
       VecIx grid_ix(bitr.pos());
+
       if (!grid_.is_inside_grid(grid_ix)) {
-        break;
+        // sometimes there's edge effects with clipping
+        continue;
       }
 
       // TODO considier other policies that map
       // grid_ix -> key
       // where key is not  ust memory. Or encapsulate
       // like map.update(grid_ix)
-      mem_ix_t mem_ix = grid_.grid_to_mem(grid_ix);
-      if (bitr.done() && hit) {
-        CellT& cell(storage_[mem_ix]);
-        UpdaterT::update_pos(cell);
-      } else {
+      if (!bitr.done()) {
+        mem_ix_t mem_ix = grid_.grid_to_mem(grid_ix);
         CellT& cell(storage_[mem_ix]);
         UpdaterT::update_neg(cell);
+        storage_[mem_ix] = cell;
       }
-    }
+    } while (!bitr.done());
   }
 
   void multi_update(const Matf& vp,
@@ -178,8 +192,22 @@ class OccMap {
     }
   }
 
+  void multi_update_single_vp(const Vecf& vp,
+                              const Matf& p) {
+    ROS_ASSERT(p.rows() == vp.rows());
+    for (int i=0; i < p.cols(); ++i) {
+      Vecf xyf(p.col(i));
+      this->update(vp, xyf);
+    }
+  }
+
+
   StorageT<CellT, Dim>& get_storage() {
     return storage_;
+  }
+
+  GridT<float, Dim>& get_grid() {
+    return grid_;
   }
 
  private:
@@ -191,11 +219,17 @@ class OccMap {
                                  bool& intersects) {
 
     // inter1 and inter2 are clipped versions of origin, x
-    Vecf inter1(Vecf::Zero());
-    Vecf inter2(Vecf::Zero());
 
     auto box(grid_.box());
+#if 1
+    Vecf inter1(Vecf::Zero());
+    Vecf inter2(Vecf::Zero());
     intersects = box.clip_line(origin, x, inter1, inter2);
+#else
+    Vecf inter1 = origin;
+    Vecf inter2 = x;
+    intersects = true;
+#endif
 
     if (!intersects) {
       start_grid_ix.setZero();
@@ -214,6 +248,12 @@ class OccMap {
   StorageT<CellT, Dim> storage_;
 
 };
+
+typedef OccMap<float, FixedGrid, ca::DenseArray, BinaryFloatUpdater, 2> FixedBinMap2f;
+typedef OccMap<ca::HitPassI4, FixedGrid, ca::DenseArray, HitPassUpdater, 2> FixedHitPassMap2i;
+typedef OccMap<float, FixedGrid, ca::DenseArray, BinaryFloatUpdater, 3> FixedBinMap3f;
+typedef OccMap<ca::HitPassI4, FixedGrid, ca::DenseArray, HitPassUpdater, 3> FixedHitPassMap3i;
+
 
 } }
 

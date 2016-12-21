@@ -323,7 +323,6 @@ class Box {
       ++ctr;
       if (ctr > 6) {
         ROS_FATAL("clipping failed");
-        ROS_ASSERT(false);
         break;
       }
     } while (!done);
