@@ -35,6 +35,13 @@ public:
   void update_neg(ca::HitPassI4& cell) {
     cell.passes = std::min(cell.passes+1, std::numeric_limits<int32_t>::max()-1);
   }
+
+  static
+  void update_decay(ca::HitPassI4& cell) {
+    cell.hits = std::max(cell.hits-1, 0);
+    cell.passes = std::max(cell.passes-1, 0);
+  }
+
 };
 
 
@@ -46,8 +53,8 @@ public:
   static constexpr float OCCUPIED = 3.5; // 0.97
   static constexpr float FREE = -2.; // 0.12
   static constexpr float UPDATE_POS = 0.85; // 0.7
-  //static constexpr float UPDATE_NEG = -0.4; // 0.4
-  static constexpr float UPDATE_NEG = -0.8;
+  static constexpr float UPDATE_NEG = -0.4; // 0.4
+  static constexpr float UPDATE_DECAY = -0.05; // 0.4
 
 public:
 
@@ -58,16 +65,20 @@ public:
 
   static
   void update_pos(float& cell) {
-    float new_val(cell + UPDATE_POS);
-    cell = std::min(new_val, OCCUPIED);
+    cell = std::min(cell + UPDATE_POS, OCCUPIED);
   }
 
   static
   void update_neg(float& cell) {
-    float new_val(cell + UPDATE_NEG);
-    cell = std::max(new_val, FREE);
+    cell = std::max(cell + UPDATE_NEG, FREE);
+  }
+
+  static
+  void update_decay(float& cell) {
+    cell = std::max(cell + UPDATE_DECAY, UNKNOWN);
   }
 };
+
 
 class BinaryUint8Updater {
 public:
@@ -169,15 +180,14 @@ class OccMap {
         continue;
       }
 
-      // TODO considier other policies that map
+      // TODO consider other policies that map
       // grid_ix -> key
-      // where key is not  ust memory. Or encapsulate
+      // where key is not just memory. Or encapsulate
       // like map.update(grid_ix)
       if (!bitr.done()) {
         mem_ix_t mem_ix = grid_.grid_to_mem(grid_ix);
         CellT& cell(storage_[mem_ix]);
         UpdaterT::update_neg(cell);
-        storage_[mem_ix] = cell;
       }
     } while (!bitr.done());
   }
@@ -198,6 +208,14 @@ class OccMap {
     for (int i=0; i < p.cols(); ++i) {
       Vecf xyf(p.col(i));
       this->update(vp, xyf);
+    }
+  }
+
+
+  void decay() {
+    for (int i=0; i < grid_.num_cells(); ++i) {
+      CellT& cell(storage_[i]);
+      UpdaterT::update_decay(cell);
     }
   }
 

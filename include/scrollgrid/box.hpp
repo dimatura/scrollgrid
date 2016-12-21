@@ -290,12 +290,12 @@ class Box {
           x = min_x;
           y = y1 + t*(y2 - y1);
           z = z1 + t*(z2 - z1);
-        } else if (codeout & static_cast<int>(OutcodeSide::near)) {
+        } else if (codeout & static_cast<int>(OutcodeSide::far)) {
           Scalar t = (max_z - z1) / (z2 - z1);
           x = x1 + t*(x2 - x1);
           y = y1 + t*(y2 - y1);
           z = max_z;
-        } else if (codeout & static_cast<int>(OutcodeSide::far)) {
+        } else if (codeout & static_cast<int>(OutcodeSide::near)) {
           Scalar t = (min_z - z1) / (z2 - z1);
           x = x1 + t*(x2 - x1);
           y = y1 + t*(y2 - y1);
