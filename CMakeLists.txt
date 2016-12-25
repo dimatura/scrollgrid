@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
 project(scrollgrid)
 
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS roscpp pcl_util geom_cast cmake_modules)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    pcl_util
+    cmake_modules)
 include_directories(${catkin_INCLUDE_DIRS})
 
 find_package(Boost REQUIRED)
@@ -25,7 +28,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # TODO: fill in what other packages will need to use this package
 catkin_package(
     DEPENDS Eigen
-    CATKIN_DEPENDS roscpp pcl_util geom_cast
+    CATKIN_DEPENDS roscpp pcl_util
     INCLUDE_DIRS include
     LIBRARIES 
 )

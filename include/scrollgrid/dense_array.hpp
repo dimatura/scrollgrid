@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 
+#include <stdexcept>
 #include <memory>
 #include <vector>
 
@@ -19,7 +20,6 @@
 
 #include <ros/console.h>
 
-#include <geom_cast/geom_cast.hpp>
 #include <pcl_util/point_types.hpp>
 
 #include "scrollgrid/grid_types.hpp"
@@ -183,20 +183,22 @@ public:
 public:
 
   /**
-   * Bound check with ROS_ASSERT
-   * Not 'really' safe
+   * Bound check
    */
   CellType& get_safe(grid_ix_t mem_ix) {
-    ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
+    if (mem_ix < 0 || mem_ix >= num_cells_) {
+      throw std::out_of_range("bad mem_ix");
+    }
     return grid_[mem_ix];
   }
 
   /**
-   * Bound check with ROS_ASSERT
-   * Not 'really' safe
+   * Bound check
    */
   const CellType& get_safe(grid_ix_t mem_ix) const {
-    ROS_ASSERT(mem_ix >= 0 && mem_ix < num_cells_);
+    if (mem_ix < 0 || mem_ix >= num_cells_) {
+      throw std::out_of_range("bad mem_ix");
+    }
     return grid_[mem_ix];
   }
 
