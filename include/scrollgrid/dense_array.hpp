@@ -95,7 +95,10 @@ public:
     for (int i=0; i < Dim; ++i) { strides_(Dim-i-1) = dimension_.tail(i).prod(); }
   }
 
-  void CopyFrom(const DenseArray& other) {
+  DenseArray(const DenseArray& other) = delete;
+  DenseArray& operator=(const DenseArray& other) = delete;
+
+  void copy_from(const DenseArray& other) {
     this->reset(other.dimension());
     std::copy(other.begin(), other.end(), this->begin());
   }
@@ -132,11 +135,9 @@ public:
     end_ = &(grid_[0])+num_cells_;
   }
 
-  size_t allocated_bytes() {
+  size_t allocated_bytes() const {
     return sizeof(CellT)*num_cells_;
   }
-
-public:
 
   void fill(const CellT& val) {
     std::fill(this->begin(), this->end(), val);
@@ -145,6 +146,9 @@ public:
 public:
   iterator begin() const { return begin_; }
   iterator end() const { return end_; }
+
+  const_iterator cbegin() const { return begin_; }
+  const_iterator cend() const { return end_; }
 
 public:
 
@@ -168,7 +172,6 @@ public:
     return out;
   }
 
-public:
 
   CellType& get(const VecIx& grid_ix) {
     grid_ix_t mem_ix = this->local_grid_to_mem(grid_ix);
@@ -180,7 +183,6 @@ public:
     return grid_[mem_ix];
   }
 
-public:
 
   /**
    * Bound check with ROS_ASSERT
@@ -200,7 +202,6 @@ public:
     return grid_[mem_ix];
   }
 
-public:
 
   /**
    * No bound check
@@ -216,6 +217,7 @@ public:
     return grid_[mem_ix];
   }
 
+
 public:
   // properties
   grid_ix_t dim(int i) const { return dimension_[i]; }
@@ -224,6 +226,7 @@ public:
   ArrayType data() const { return &grid_[0]; }
   grid_ix_t stride(int i) { return strides_[i]; }
   VecIx strides() const { return strides_; }
+
 
 private:
   // number of grid cells along each axis
@@ -242,9 +245,6 @@ private:
   // does this object own the grid_ mem
   bool owns_memory_;
 
-//private:
- // DenseArray3(const DenseArray3& other);
- // DenseArray3& operator=(const DenseArray3& other);
 };
 
 typedef DenseArray<float, 2> DenseArray2f;
