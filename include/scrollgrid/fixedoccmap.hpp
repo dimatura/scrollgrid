@@ -78,7 +78,7 @@ public:
   //static constexpr float FREE = -2.; // 0.12
   //static constexpr float UPDATE_POS = 0.85; // 0.7
   //static constexpr float UPDATE_NEG = -0.4; // 0.4
-  //static constexpr float UPDATE_DECAY = -0.05; // 0.4
+  //static constexpr float UPDATE_DECAY = 0.05; // 0.4
 
 
 public:
@@ -100,7 +100,13 @@ public:
 
   static
   void update_decay(float& cell) {
-    cell = std::max(cell + UPDATE_DECAY, UNKNOWN);
+    // push towards unknown
+    //static constexpr eps = 1e-4;
+    if (cell < (UNKNOWN - UPDATE_DECAY)) {
+      cell = cell + UPDATE_DECAY;
+    } else if (cell > (UNKNOWN + UPDATE_DECAY)) {
+      cell = cell - UPDATE_DECAY;
+    }
   }
 };
 
@@ -189,7 +195,7 @@ class OccMap {
     //std::cerr << "start_grid_ix = " << start_grid_ix.transpose() << std::endl;
     //std::cerr << "end_grid_ix = " << end_grid_ix.transpose() << std::endl;
 
-    if (hit) {
+    if (hit && grid_.is_inside_grid(end_grid_ix)) {
       mem_ix_t mem_ix = grid_.grid_to_mem(end_grid_ix);
       CellT& cell(storage_[mem_ix]);
       UpdaterT::update_pos(cell);
@@ -200,16 +206,14 @@ class OccMap {
       bitr.step();
       VecIx grid_ix(bitr.pos());
 
-      if (!grid_.is_inside_grid(grid_ix)) {
-        // sometimes there's edge effects with clipping
-        continue;
-      }
+      // sometimes there's edge effects with clipping
+      // so we ignore positions outside the grid
 
       // TODO consider other policies that map
       // grid_ix -> key
       // where key is not just memory. Or encapsulate
       // like map.update(grid_ix)
-      if (!bitr.done()) {
+      if (!bitr.done() && grid_.is_inside_grid(grid_ix)) {
         mem_ix_t mem_ix = grid_.grid_to_mem(grid_ix);
         CellT& cell(storage_[mem_ix]);
         UpdaterT::update_neg(cell);
