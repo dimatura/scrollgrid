@@ -18,7 +18,6 @@
 
   <depend>cmake_modules</depend>
   <depend>eigen</depend>
-  <depend>geom_cast</depend>
   <depend>pcl_util</depend>
   <depend>roscpp</depend>
 

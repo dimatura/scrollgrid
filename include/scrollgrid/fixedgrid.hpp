@@ -20,7 +20,6 @@
 
 #include <ros/console.h>
 
-//#include <geom_cast/geom_cast.hpp>
 #include <pcl_util/point_types.hpp>
 
 #include "scrollgrid/grid_types.hpp"
