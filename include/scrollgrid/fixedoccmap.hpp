@@ -17,6 +17,11 @@
  */
 namespace ca { namespace scrollgrid {
 
+constexpr float logit(float x) {
+  // beware edge cases
+  return std::log(x)/(1.f - std::log(x));
+}
+
 class HitPassUpdater {
 public:
 
@@ -49,12 +54,32 @@ class BinaryFloatUpdater {
 public:
   // constants from octomap paper
   // TODO: maybe constexpr log(x/(1.-x))
-  static constexpr float UNKNOWN = 0.0; // 0.5
-  static constexpr float OCCUPIED = 3.5; // 0.97
-  static constexpr float FREE = -2.; // 0.12
-  static constexpr float UPDATE_POS = 0.85; // 0.7
-  static constexpr float UPDATE_NEG = -0.4; // 0.4
-  static constexpr float UPDATE_DECAY = -0.05; // 0.4
+
+  static constexpr float UNKNOWN_PROB = 0.5;
+  static constexpr float OCCUPIED_PROB = 0.97;
+  static constexpr float FREE_PROB = 0.12;
+
+  static constexpr float UPDATE_POS_PROB = 0.7;
+  static constexpr float UPDATE_NEG_PROB = 0.4;
+
+  static constexpr float UPDATE_DECAY_PROB = 0.48;
+
+  static constexpr float UNKNOWN = logit(UNKNOWN_PROB);
+  static constexpr float OCCUPIED = logit(OCCUPIED_PROB);
+  static constexpr float FREE = logit(FREE_PROB);
+
+  static constexpr float UPDATE_POS = logit(UPDATE_POS_PROB);
+  static constexpr float UPDATE_NEG = logit(UPDATE_NEG_PROB);
+
+  static constexpr float UPDATE_DECAY = logit(UPDATE_DECAY_PROB);
+
+  //static constexpr float UNKNOWN = 0.0; // 0.5
+  //static constexpr float OCCUPIED = 3.5; // 0.97
+  //static constexpr float FREE = -2.; // 0.12
+  //static constexpr float UPDATE_POS = 0.85; // 0.7
+  //static constexpr float UPDATE_NEG = -0.4; // 0.4
+  //static constexpr float UPDATE_DECAY = -0.05; // 0.4
+
 
 public:
 
