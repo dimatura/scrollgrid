@@ -95,7 +95,19 @@ public:
     for (int i=0; i < Dim; ++i) { strides_(Dim-i-1) = dimension_.tail(i).prod(); }
   }
 
-  DenseArray(const DenseArray& other) = delete;
+  DenseArray(const DenseArray& other) {
+    dimension_ = other.dimension_;
+    num_cells_ = other.num_cells_;
+    strides_ = other.strides_;
+
+    grid_ = new CellT[num_cells_]();
+    begin_ = &(grid_[0]);
+    end_ = &(grid_[0])+num_cells_;
+
+    std::copy(other.begin(), other.end(), this->begin());
+    owns_memory_ = true;
+  }
+
   DenseArray& operator=(const DenseArray& other) = delete;
 
   void copy_from(const DenseArray& other) {
