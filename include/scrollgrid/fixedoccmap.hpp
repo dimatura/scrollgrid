@@ -17,9 +17,10 @@
  */
 namespace ca { namespace scrollgrid {
 
-constexpr float logit(float x) {
+template<class Scalar>
+constexpr Scalar logit(Scalar x) {
   // beware edge cases
-  return std::log(x)/(1.f - std::log(x));
+  return std::log(x/(1.0 - x));
 }
 
 class HitPassUpdater {
@@ -62,8 +63,6 @@ public:
   static constexpr float UPDATE_POS_PROB = 0.7;
   static constexpr float UPDATE_NEG_PROB = 0.4;
 
-  static constexpr float UPDATE_DECAY_PROB = 0.48;
-
   static constexpr float UNKNOWN = logit(UNKNOWN_PROB);
   static constexpr float OCCUPIED = logit(OCCUPIED_PROB);
   static constexpr float FREE = logit(FREE_PROB);
@@ -71,7 +70,8 @@ public:
   static constexpr float UPDATE_POS = logit(UPDATE_POS_PROB);
   static constexpr float UPDATE_NEG = logit(UPDATE_NEG_PROB);
 
-  static constexpr float UPDATE_DECAY = logit(UPDATE_DECAY_PROB);
+  // NOTE: this is multiplicative and should be 0 < x < 1
+  static constexpr float UPDATE_DECAY = 0.95f;
 
   //static constexpr float UNKNOWN = 0.0; // 0.5
   //static constexpr float OCCUPIED = 3.5; // 0.97
@@ -100,13 +100,10 @@ public:
 
   static
   void update_decay(float& cell) {
-    // push towards unknown
-    //static constexpr eps = 1e-4;
-    if (cell < (UNKNOWN - UPDATE_DECAY)) {
-      cell = cell + UPDATE_DECAY;
-    } else if (cell > (UNKNOWN + UPDATE_DECAY)) {
-      cell = cell - UPDATE_DECAY;
-    }
+    // push towards unknown (default 0 in the log domain)
+    // I have no theoretical justification. there's an exercise
+    // at the end of thurn robotics book.
+    cell = cell*UPDATE_DECAY;
   }
 };
 
