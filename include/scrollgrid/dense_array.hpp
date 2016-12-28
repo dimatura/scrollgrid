@@ -47,7 +47,7 @@ public:
   typedef std::shared_ptr<const DenseArray> ConstPtr;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
   // TODO perhaps stride/memory layout should
   // be further configurable.
