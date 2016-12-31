@@ -33,8 +33,8 @@ typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 3, Eigen::RowMajor> Mat3Ix;
 typedef Eigen::Matrix<grid_ix_t, Eigen::Dynamic, 4, Eigen::RowMajor> Mat4Ix;
 
 struct HitPassI4 {
-  int32_t hits = 0;
-  int32_t passes = 0;
+  int32_t hits;
+  int32_t passes;
 };
 
 } /* ca */

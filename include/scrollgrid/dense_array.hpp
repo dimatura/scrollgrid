@@ -36,7 +36,7 @@ namespace ca {
 template<class CellT, int Dim_>
 class DenseArray {
 public:
-  enum { Dim = Dim_ };
+  static constexpr int Dim = Dim_;
   typedef CellT CellType;
   typedef CellT * ArrayType;
   typedef CellT * iterator;
