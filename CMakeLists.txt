@@ -4,7 +4,6 @@ project(scrollgrid)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    pcl_util
     cmake_modules)
 include_directories(${catkin_INCLUDE_DIRS})
 
@@ -28,9 +27,9 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # TODO: fill in what other packages will need to use this package
 catkin_package(
     DEPENDS Eigen
-    CATKIN_DEPENDS roscpp pcl_util
+    CATKIN_DEPENDS roscpp cmake_modules
     INCLUDE_DIRS include
-    LIBRARIES 
+    LIBRARIES
 )
 
 

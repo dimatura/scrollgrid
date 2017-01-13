@@ -11,8 +11,6 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include <pcl_util/point_types.hpp>
-
 #include "scrollgrid/grid_types.hpp"
 
 #include <ros/ros.h>

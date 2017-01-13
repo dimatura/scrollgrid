@@ -6,8 +6,6 @@
 
 #include <ros/ros.h>
 
-//#include <pcl_util/point_types.hpp>
-
 #include <scrollgrid/dense_array.hpp>
 #include <scrollgrid/fixedgrid.hpp>
 #include <scrollgrid/raycasting.hpp>
